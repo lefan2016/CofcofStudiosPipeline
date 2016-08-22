@@ -49,9 +49,9 @@ def NurbCreation(name,directionAxi=[0,0,1],splitU=1,splitV=5,width=5,lengthRatio
     cmds.parent(jnts[1:], w=1)
 
     #creation joint
-    jntsRig.append(crearJointInSpace(name+'Top',posJntT,3))
-    jntsRig.append(crearJointInSpace(name+'Mid',posJntM,3))
-    jntsRig.append(crearJointInSpace(name+'Btm',posJntB,3))
+    jntsRig.append(crearJointInSpace(name+'Top',posJntT,2))
+    jntsRig.append(crearJointInSpace(name+'Mid',posJntM,2))
+    jntsRig.append(crearJointInSpace(name+'Btm',posJntB,2))
     #create skin
     scl=cmds.skinCluster(jntsRig[0],jntsRig[1],jntsRig[2],nurbName[0],n=name+'_SCL')
     #Creation Groups
@@ -62,6 +62,8 @@ def NurbCreation(name,directionAxi=[0,0,1],splitU=1,splitV=5,width=5,lengthRatio
 
     return nurbName[0],follicles,jnts,jntsRig,scl
 
+
+
 #PROPERTIES SPINE
 side='C'#Letra de ubicacion en el espacio
 prefix='_'+'spine'#Nombre del objeto
@@ -70,35 +72,14 @@ name='_'+'spine'#nombre de la parte
 #Vertical
 #splitU Numero en X
 #splitV Numero en Y
-axis=[1,0,0],[0,1,0],[0,0,1]#Direccion en el espacio
-Ratio=0.2#Ratio del nurb
+#axis [1,0,0],[0,1,0],[0,0,1] Direccion en el espacio
+#Ratio del nurb
+
 #Creo Rig spina vertical
-rigNurb2=NurbCreation(side+prefix+name,
-                        directionAxi=axis[1],
+rigNurb=NurbCreation(side+prefix+name,
+                        directionAxi=[0,1,0],
                         splitU=5,
                         splitV=1,
                         width=5,
-                        lengthRatio=Ratio
+                        lengthRatio=0.2
                         )
-#Creo Rig spina horizontal
-rigNurb2=NurbCreation(side+prefix+name,
-                        directionAxi=axis[1],
-                        splitU=5,
-                        splitV=1,
-                        width=4,
-                        lengthRatio=Ratio
-                        )
-
-
-
-
-
-#cmds.parent(jnt,foll)
-channelBox =mel.eval('global string $gChannelBoxName; $temp=$gChannelBoxName;')	#fetch maya's main channelbox
-attrs = pm.channelBox(channelBox, q=1, sma=1)
-
-def resetAttr(obj,resetList=['tx','ty','tz','rx','ry','rz','sx','sy','sz']):
-    for o in obj:
-        for att in resetList:
-            defAtt = pm.attributeQuery(att,node=o,listDefault=1)[0]
-            cmds.setAttr(o+att,defAtt)
