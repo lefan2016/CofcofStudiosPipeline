@@ -1,7 +1,15 @@
 import maya.cmds as cmds
 import maya.mel as mel
 import pymel.core as pm
-
+import sys
+path='..\UTILITYES'
+if not path in sys.path:
+    sys.path.append(path)
+try:
+    import UTILITYES
+    reload(UTILITYES)
+except ImportError:
+    print 'porfavor fijate si tenes el modulo de utilidades'
 def crearJointInSpace(n='',pos=[],r=1):#Made joints in space
     cmds.select(cl=1)
     jnt=cmds.joint(name=n+'_JNT',p=pos,radius=r)
@@ -33,7 +41,7 @@ def NurbCreation(name,directionAxi=[0,0,1],splitU=1,splitV=5,width=5,lengthRatio
     #Create nurb with folicles
     nurb=cmds.nurbsPlane( ax=directionAxi,w=width, lr=lengthRatio,u=splitU,v=splitV,n=name+'_NSK' )
     nurbName=cmds.rebuildSurface (nurb,rpo=1, rt=0, end=1,kr=0,kcp=0,kc=1,su=splitU,du=1,sv=splitV,dv=3,tol=0.01,fr=0,dir=dire)#reconstruyo la build
-    mel.eval('createHair '+str(splitU)+' '+str(splitV)+' 5 0 0 0 0 '+str(splitV)+' 0 2 2 1')
+    mel.eval('createHair '+str(splitU)+' '+str(splitV)+' 5 0 0 0 0 '+str(splitU)+' 0 2 2 1')
     cmds.delete('hairSystem1','hairSystem1OutputCurves','nucleus1')
     grpFoll=cmds.rename('hairSystem1Follicles',(name+'Follicles'+'_GRP'))
     follicles=cmds.listRelatives(grpFoll,children=1)
@@ -72,7 +80,7 @@ name='_'+'spine'#nombre de la parte
 #Vertical
 #splitU Numero en X
 #splitV Numero en Y
-#axis [1,0,0],[0,1,0],[0,0,1] Direccion en el espacio
+#axis [1,0,0],[0,1,0],[0,0,1] Direccion en el espacio 
 #Ratio del nurb
 
 #Creo Rig spina vertical
