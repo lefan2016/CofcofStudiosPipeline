@@ -17,7 +17,7 @@ fileui='autoRigUI.ui'
 #utl.compilarPySideUI(dir,fire)
 uiFile=dir+fileui
 
-loader = QUiLoader()
+loader = QtUiTools.QUiLoader()
 loader.registerCustomWidget(autoRig)
 aRig = loader.load(uiFile)
 aRig.show()
@@ -112,7 +112,7 @@ aR.NurbCreation(variableNombre,
                         )
 
 
-
+'''
 class createMyLayoutCls(object):
     def show(self):
         self.createMyLayout()
@@ -149,3 +149,5 @@ cmds.frameLayout( label='Spine',ann='Agrega la cantidad de huesos necesarios.')
 cmds.separator( style='none' )
 cmds.intSliderGrp(columnAttach=[2, 'left', 3],cl3=['right','left','left'], field=True, label='Joints', minValue=3, maxValue=50, fieldMinValue=-100, fieldMaxValue=100, value=3 )
 cmds.showWindow()
+
+'''
