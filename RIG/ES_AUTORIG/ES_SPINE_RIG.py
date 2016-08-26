@@ -12,22 +12,13 @@ try:
 except ImportError:
     print 'porfavor fijate si tenes el modulo de utilidades'
 
-dir=r'P:/LOCAL/ES_SCRIPTS/RIG/ES_AUTORIG/'
-fileui='autoRigUI.ui'
-#utl.compilarPySideUI(dir,fire)
-uiFile=dir+fileui
 
-loader = QtUiTools.QUiLoader()
-loader.registerCustomWidget(autoRig)
-aRig = loader.load(uiFile)
-aRig.show()
-
-class autoRig(object):
+class autoRig():
 
     def __init__(self):
         print('hola')
 
-    def crearJointInSpace(self,n='',pos=[],r=1):#Made joints in space
+    def JointInSpace(self,n='',pos=[],r=1):#Made joints in space
         cmds.select(cl=1)
         self.jnt=cmds.joint(name=n+'_JNT',p=pos,radius=r)
         return self.jnt
@@ -57,39 +48,50 @@ class autoRig(object):
                 posJntB=[0,0,-width/2]
                 dire=1
             #Create nurb with folicles
-            nurb=cmds.nurbsPlane( ax=directionAxi,w=width, lr=lengthRatio,u=splitU,v=splitV,n=name+'_NSK' )
-            nurbName=cmds.rebuildSurface (nurb,rpo=1, rt=0, end=1,kr=0,kcp=0,kc=1,su=splitU,du=1,sv=splitV,dv=3,tol=0.01,fr=0,dir=dire)#reconstruyo la build
+            self.nurb=cmds.nurbsPlane( ax=directionAxi,w=width, lr=lengthRatio,u=splitU,v=splitV,n=name+'_NSK' )
+            self.nurbName=cmds.rebuildSurface (self.nurb,rpo=1, rt=0, end=1,kr=0,kcp=0,kc=1,su=splitU,du=1,sv=splitV,dv=3,tol=0.01,fr=0,dir=dire)#reconstruyo la build
             mel.eval('createHair '+str(splitU)+' '+str(splitV)+' 5 0 0 0 0 '+str(splitU)+' 0 2 2 1')
             cmds.delete('hairSystem1','hairSystem1OutputCurves','nucleus1')
-            grpFoll=cmds.rename('hairSystem1Follicles',(name+'Follicles'+'_GRP'))
-            follicles=cmds.listRelatives(grpFoll,children=1)
-            jnts=[]
-            jntsRig=[]
-            for f in range(len(follicles)):
-                foll=cmds.rename(follicles[f], name+'Flc'+str(f)+'_FLC')
-                cmds.delete(cmds.listRelatives(foll,children=1)[1])
-                jnt=cmds.joint(name=name+str(f)+'_JSK')
-                jnts.append(jnt)
-                cmds.connectAttr( foll+'.outTranslate', jnt+'.translate',f=1)
-                cmds.connectAttr( foll+'.outRotate', jnt+'.rotate',f=1)
-            cmds.parent(jnts[1:], w=1)
-
+            self.grpFoll=cmds.rename('hairSystem1Follicles',(name+'Follicles'+'_GRP'))
+            self.follicles=cmds.listRelatives(self.grpFoll,children=1)
+            self.jnts=[]
+            self.jntsRig=[]
+            for f in range(len(self.follicles)):
+                self.foll=cmds.rename(self.follicles[f], name+'Flc'+str(f)+'_FLC')
+                cmds.delete(cmds.listRelatives(self.foll,children=1)[1])
+                self.jnt=cmds.joint(name=name+str(f)+'_JSK',absolute=1)
+                self.jnts.append(self.jnt)
+                cmds.connectAttr( self.foll+'.outTranslate', self.jnt+'.translate',f=1)
+                cmds.connectAttr( self.foll+'.outRotate', self.jnt+'.rotate',f=1)
+            cmds.parent(self.jnts[1:], w=1)
             #creation joint
-            jntsRig.append(crearJointInSpace(name+'Top',posJntT,2))
-            jntsRig.append(crearJointInSpace(name+'Mid',posJntM,2))
-            jntsRig.append(crearJointInSpace(name+'Btm',posJntB,2))
+            self.jntsRig.append(JointInSpace(self,name+'Top',posJntT,2))
+            self.jntsRig.append(JointInSpace(self,name+'Mid',posJntM,2))
+            self.jntsRig.append(JointInSpace(self,name+'Btm',posJntB,2))
             #create skin
-            scl=cmds.skinCluster(jntsRig[0],jntsRig[1],jntsRig[2],nurbName[0],n=name+'_SCL')
+            self.scl=cmds.skinCluster(self.jntsRig[0],self.jntsRig[1],self.jntsRig[2],self.nurbName[0],n=name+'_SCL')
             #Creation Groups
-            gJoints=grupoDe(jnts,side+prefix+'_joints')
-            gJntsRig=grupoDe(jntsRig,side+prefix+'_jointsRig')
-            follicles=cmds.listRelatives(grpFoll,children=1)
-            gJntsRig=grupoDe([grpFoll,gJoints,gJntsRig,nurbName[0]],name)
+            self.gJoints=grupoDe(self.jnts,name+'_joints')
+            self.gJntsRig=grupoDe(jntsRig,name+'_jointsRig')
+            self.follicles=cmds.listRelatives(self.grpFoll,children=1)
+            self.gJntsRig=grupoDe([grpFoll,gJoints,gJntsRig,nurbName[0]],name)
 
             return nurbName[0],follicles,jnts,jntsRig,scl
         else:
             cmds.warning('YA EXISTE '+ name +' CON ESE NOMBRE.')
 
+class winAR(autoRig):
+    def __init__():
+
+        self.dir=r'P:/LOCAL/ES_SCRIPTS/RIG/ES_AUTORIG/'
+        self.fileui='autoRigUI.ui'
+        #utl.compilarPySideUI(dir,fire)
+        self.uiFile=self.dir+self.fileui
+
+        loader = QtUiTools.QUiLoader()
+        loader.registerCustomWidget(autoRig)
+        rwin = loader.load(uiFile)
+        rwin.show()
 
 
 #PROPERTIES SPINE
@@ -103,6 +105,7 @@ variableNombre=side+prefix+name
 #axis [1,0,0],[0,1,0],[0,0,1] Direccion en el espacio
 #Ratio del nurb
 aR=autoRig()
+w=winAR
 aR.NurbCreation(variableNombre,
                         [0,1,0],
                         5,
@@ -110,7 +113,6 @@ aR.NurbCreation(variableNombre,
                         5,
                         0.2
                         )
-
 
 '''
 class createMyLayoutCls(object):
