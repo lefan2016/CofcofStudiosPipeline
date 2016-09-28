@@ -2,28 +2,22 @@ import maya.cmds as cmds
 import maya.mel as mel
 import pymel.core as pm
 import sys
-from PySide import QtCore, QtGui, QtUiTools
-path='P:/LOCAL/PH_SCRIPTS/_SCRIPTS'
-if not path in sys.path:
-    sys.path.append(path)
-try:
-    import UTILITIES as utl
-    reload(utl)
-except ImportError:
-    print 'porfavor fijate si tenes el modulo de utilidades'
-
+from PySide2 import QtCore, QtGui, QtUiTools
 
 class RigSpine():
+    '''
+    #Funciones pensadas para creacion de una spina con nurbsPlane
+    '''
+    def __init__(self,name,directionAxi,splitU,splitV,width,lengthRatio,jntskin):
+        self.name=name #Nombre de la espina y de su composicion ej:C_spine_spine_
+        self.directionAxi=directionAxi #direccion del vector para crearlo ej:[0,1,0]
+        self.splitU=splitU #Cantidad de subdiviciones en X del nurb
+        self.splitV=splitV #Cantidad de subdiviciones en Y del nurb
+        self.width=width #Ancho total del nurb
+        self.lengthRatio=lengthRatio #Grosor del nurb
+        self.jntToskin=jntskin#Cantidad de huesos que blendeas para skiniar
 
-    def __init__(self,name,directionAxi,splitU,splitV,width,lengthRatio):
-        self.name=name
-        self.directionAxi=directionAxi
-        self.splitU=splitU
-        self.splitV=splitV
-        self.width=width
-        self.lengthRatio=lengthRatio
-
-    def JointInSpace(self,n='',pos=[],r=1):#Made joints in space
+    def JointInSpace(self,n='',pos=[],r=1.5):#Made joints in space
         cmds.select(cl=1)
         self.jnt=cmds.joint(name=n+'_JNT',p=pos,radius=r)
         return self.jnt
@@ -32,24 +26,53 @@ class RigSpine():
         self.grp=cmds.group(objs,n=name+'_GRP')
         return self.grp
 
-    def NurbCreation(self,name,directionAxi=[0,0,1],splitU=1,splitV=5,width=5,lengthRatio=5):
+    def createCnt(self,objs=[],nameSuf='ZTR',nameTrf='TRF',nameCNT='CNT',rad=14):
+        #objs=cmds.ls(sl=1)
+        grpYcnt=[]
+        for obj in objs:
+            print obj
+            if '|' in obj:
+                obj=obj.split('|')[-1]
+            if '_' in obj:
+                newName=obj.split(obj.split('_')[-1:][0])[0]
+            else:
+                newName=obj
+            #currentParent=cmds.listRelatives(obj,parent=1)
+            ztr=cmds.group(em=True,n=str(newName+nameSuf))
+            pcns=cmds.parentConstraint(obj,ztr)
+            scns=cmds.scaleConstraint(obj,ztr)
+            cmds.delete(pcns,scns)
+            trf=cmds.duplicate(ztr,n=str(newName+nameTrf))[0]
+            cmds.parent(trf,ztr)
+            cnt=cmds.circle(radius=rad,nrx=1,normalZ=0,name=str(newName+nameCNT))[0]
+            pcns=cmds.parentConstraint(trf,cnt)
+            scns=cmds.scaleConstraint(trf,cnt)
+            cmds.delete(pcns,scns)
+            cmds.parent(cnt,trf)
+            #p=cmds.parent(obj,cnt)
+            grpYcnt.append(ztr)
+            grpYcnt.append(trf)
+            grpYcnt.append(cnt)
+        return grpYcnt
+
+    def nurbCreation(self,name,directionAxi=[0,1,0],splitU=1,splitV=5,width=5,lengthRatio=5,jntskin=10):
         #Positions and direction joints
         if directionAxi==[0,0,1]:
-            posJntT=[0,width/2,0]
-            posJntM=[0,splitU/3,0]
-            posJntB=[0,-width/2,0]
+            posJntT=[0,width,0]
+            posJntM=[0,0,0]
+            posJntB=[0,-width,0]
             dire=0
 
-        elif directionAxi==[0,1,0]:
-            posJntT=[width/2,0,0]
-            posJntM=[splitV/3,0,0]
-            posJntB=[-width/2,0,0]
+        elif directionAxi==[1,0,0]:
+            posJntT=[0,-splitV/2,0]
+            posJntM=[0,0,0]
+            posJntB=[0,splitV/2,0]
             dire=1
 
-        elif directionAxi==[1,0,0]:
-            posJntT=[0,0,width/2]
-            posJntM=[0,0,splitV/3]
-            posJntB=[0,0,-width/2]
+        elif directionAxi==[0,1,0]:
+            posJntT=[0,0,width]
+            posJntM=[0,0,0]
+            posJntB=[0,0,-width]
             dire=1
         #Create nurb with folicles
         self.nurb=cmds.nurbsPlane( ax=directionAxi,w=width, lr=lengthRatio,u=splitU,v=splitV,n=name+'_NSK' )
@@ -69,30 +92,33 @@ class RigSpine():
             cmds.connectAttr( self.foll+'.outRotate', self.jnt+'.rotate',f=1)
         cmds.parent(self.jnts[1:], w=1)
         #creation joint
-        self.jntsRig.append(self.JointInSpace(name+'Top',posJntT,2))
-        self.jntsRig.append(self.JointInSpace(name+'Mid',posJntM,2))
-        self.jntsRig.append(self.JointInSpace(name+'Btm',posJntB,2))
+        for j in range(len(self.jntskin)):
+            if not j == self.jntskin-1:
+                self.jntsRig.append(self.JointInSpace(name+str(j),(posJntT-[0,0,j])))
         #create skin
-        self.scl=cmds.skinCluster(self.jntsRig[0],self.jntsRig[1],self.jntsRig[2],self.nurbName[0],n=name+'_SCL')
+        self.scl=cmds.skinCluster(self.jntsRig,self.nurbName[0],n=name+'_SCL')
         #Creation Groups
         self.gJoints=self.grupoDe(self.jnts,name+'_joints')
         self.gJntsRig=self.grupoDe(self.jntsRig,name+'_jointsRig')
         self.follicles=cmds.listRelatives(self.grpFoll,children=1)
         self.gJntsRig=self.grupoDe([self.grpFoll,self.gJoints,self.gJntsRig,self.nurbName[0]],name)
+        self.gCnts=self.grupoDe(self.createCnt(self.gJntsRig),name+'_CNTS')
 
-        return self.nurbName[0],self.follicles,self.jnts,self.jntsRig,self.scl
+        return self.nurbName[0],self.follicles,self.jnts,self.jntsRig,self.scl,self.gCnts
 
-        def createSpine(self):
-            if not cmds.objExists(name+'_GRP'):
-                
+    def createSpine(self):
+        if not cmds.objExists(self.name+'_GRP'):
+            self.nurbCreation(self.name,self.directionAxi,self.splitU,self.splitV,self.width,self.lengthRatio,self.jntToskin)
         else:
-            cmds.warning('YA EXISTE '+ name +' CON ESE NOMBRE.')
-            newName=cmds.raw_input('Quiere agregar otro nombre?')
-            if newName:
-                NurbCreation(name,)
+            cmds.warning('YA EXISTE '+ self.name +' CON ESE NOMBRE.')
+            newName=cmds.promptDialog(title='DESEA PONER OTRO NOMBRE?',message='Enter name:',
+                        button=['Y','N'],defaultButton='Y', cancelButton='N',dismissString='N')
+            if newName == 'Y':
+                self.nurbCreation(str(self.name+'_DUPLICATE'),self.directionAxi,self.splitU,self.splitV,self.width,self.lengthRatio)
+            else:
+                None
 
-
-class winAR(autoRig):
+class winAR(RigSpine):
     def __init__():
 
         self.dir=r'P:/LOCAL/ES_SCRIPTS/RIG/ES_AUTORIG/'
@@ -101,61 +127,6 @@ class winAR(autoRig):
         self.uiFile=self.dir+self.fileui
 
         loader = QtUiTools.QUiLoader()
-        loader.registerCustomWidget(autoRig)
+        loader.registerCustomWidget(RigSpine)
         rwin = loader.load(uiFile)
         rwin.show()
-
-
-#PROPERTIES SPINE
-side='C'#Letra de ubicacion en el espacio
-prefix='_'+'spine'#Nombre del objeto
-name='_'+'spine'#nombre de la parte
-variableNombre=side+prefix+name
-#Vertical
-#splitU Numero en X
-#splitV Numero en Y
-#axis [1,0,0],[0,1,0],[0,0,1] Direccion en el espacio
-#Ratio del nurb
-aR=autoRig()
-w=winAR
-aR.NurbCreation(variableNombre,[0,1,0],5,1,5,.2)
-
-'''
-class createMyLayoutCls(object):
-    def show(self):
-        self.createMyLayout()
-    def createMyLayout(self):
-        #check to see if our window exists
-        if cmds.window('utility', exists = True):
-            cmds.deleteUI('utility')
-        # create our window
-        self.window = cmds.window('utility', widthHeight = (200, 200), title = 'Distribute', resizeToFitChildren=1, sizeable = False)
-        cmds.setParent(menu=True)
-        # create a main layout
-        mainLayout = cmds.columnLayout(w = 200, h = 200, cw = 15, rs = 12, co = ['both',5])
-        # X Control
-        self.xAxis = cmds.checkBox('X')
-        # Distribute Button
-        btnDistribute = cmds.button(label = 'Distribute', width = 180, height = 40, c = self.GetSelectedNodes)
-        # show window
-        cmds.showWindow(self.window)
-
-    def GetSelectedNodes(self,*args):
-        cal = cmds.checkBox(self.xAxis,q = True, v = True)
-        print cal
-
-b_cls = createMyLayoutCls()
-b_cls.show()
-
-
-win=' AUTORIG - ESPIRAL STUDIOS v(0.1)'
-if cmds.window(win,q=1,ex=1):
-    cmds.deleteUI(win)
-cmds.window(w, title=w,widthHeight=(350, 150))
-cmds.rowColumnLayout( numberOfColumns=3, columnWidth=[(1, 250), (2, 100), (3, 100)] )
-cmds.frameLayout( label='Spine',ann='Agrega la cantidad de huesos necesarios.')
-cmds.separator( style='none' )
-cmds.intSliderGrp(columnAttach=[2, 'left', 3],cl3=['right','left','left'], field=True, label='Joints', minValue=3, maxValue=50, fieldMinValue=-100, fieldMaxValue=100, value=3 )
-cmds.showWindow()
-
-'''
