@@ -1,0 +1,4 @@
+*.pyc
+RIG/UTILITYES/getUParam.py
+.vscode/launch.json
+.vscode/.ropeproject/config.py
