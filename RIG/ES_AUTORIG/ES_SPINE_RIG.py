@@ -60,20 +60,20 @@ class RigSpine():
         self.grpCtroles=[]
         #Positions and direction joints
         if directionAxi==[0,0,1]:
-            for j in list(range(-jntskin, jntskin)):
+            for j in range(jntskin+1):
                 if not j == jntskin+1:
-                    self.jntsRigSkin.append(self.JointInSpace(name+str(j),[jntskin-j,0,0]))
+                    self.jntsRigSkin.append(self.JointInSpace(name+str(j),[jntskin-j,0,0],'_JSK'))
             self.createCnt(self.jntsRigSkin,[1,0,0],width)[0]#creo controles en los huesos del espacio con una direccion x
         elif directionAxi==[1,0,0]:
             for j in range(jntskin+1):
                 if not j == jntskin+1:
-                    self.jntsRigSkin.append(self.JointInSpace(name+str(j),[0,jntskin-j,0]))
+                    self.jntsRigSkin.append(self.JointInSpace(name+str(j),[0,jntskin-j,0],'_JSK'))
             self.createCnt(self.jntsRigSkin,[0,1,0],width)[0]#creo controles en los huesos del espacio con una direccion y
         elif directionAxi==[0,1,0]:
-            for j in list(range(-jntskin, jntskin+1)):
-                if not j > 40:
-                    self.jntsRigSkin.append(self.JointInSpace(name+str(j),[0,0,jntskin]))
-            self.createCnt(self.jntsRigSkin,[0,0,1],width)#creo controles en los huesos del espacio con una direccion z
+            for j in range(jntskin+1):
+                if not j == jntskin+1:
+                    self.jntsRigSkin.append(self.JointInSpace(name+str(j),[0,0,jntskin-j],'_JSK'))
+            self.createCnt(self.jntsRigSkin,[0,0,1],width)[0]#creo controles en los huesos del espacio con una direccion z
 
         #Create nurb with folicles
         self.nurb=cmds.nurbsPlane( ax=directionAxi,w=width, lr=lengthRatio,u=splitU,v=splitV,n=name+'_NSK')
