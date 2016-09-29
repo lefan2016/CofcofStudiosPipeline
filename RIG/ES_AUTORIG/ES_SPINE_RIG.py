@@ -8,14 +8,14 @@ class RigSpine():
     '''
     #Funciones pensadas para creacion de una spina con nurbsPlane
     '''
-    def __init__(self,name,directionAxi,splitU,splitV,width,lengthRatio,jntskin):
+    def __init__(self,name,directionAxi,splitU,splitV,width,lengthRatio,jnts):
         self.name=name #Nombre de la espina y de su composicion ej:C_spine_spine_
         self.directionAxi=directionAxi #direccion del vector para crearlo ej:[0,1,0]
         self.splitU=splitU #Cantidad de subdiviciones en X del nurb
         self.splitV=splitV #Cantidad de subdiviciones en Y del nurb
         self.width=width #Ancho total del nurb
         self.lengthRatio=lengthRatio #Grosor del nurb
-        self.jntToskin=jntskin#Cantidad de huesos que blendeas para skiniar
+        self.jnts=jnts#Cantidad de huesos que blendeas para skiniar
 
     def JointInSpace(self,n='',pos=[],suff='_JNT',r=1.5):#Made joints in space
         cmds.select(cl=1)#deselecciono
@@ -30,7 +30,6 @@ class RigSpine():
         #objs=cmds.ls(sl=1)
             grpYcnt=[]
             for obj in objs:
-                print obj
                 if '|' in obj:
                     obj=obj.split('|')[-1]
                 if '_' in obj:
@@ -49,32 +48,28 @@ class RigSpine():
                 scns=cmds.scaleConstraint(trf,cnt)
                 cmds.delete(pcns,scns)
                 cmds.parent(cnt,trf)
-                pcns=cmds.parentConstraint(cnt,obj)
-                scns=cmds.scaleConstraint(cnt,obj)
-                grpYcnt.append(ztr)[0]
+                pcns=cmds.parentConstraint(cnt,obj,n=newName+'PCNS')
+                scns=cmds.scaleConstraint(cnt,obj,n=newName+'SCNS')
+                grpYcnt.append(ztr)
             return grpYcnt
 
-    def nurbCreation(self,name,directionAxi=[0,1,0],splitU=1,splitV=5,width=5,lengthRatio=5,jntskin=5):
-
-        self.jntsRigSkin=[]
+    def nurbCreation(self,name,directionAxi=[0,1,0],splitU=1,splitV=5,width=5,lengthRatio=5,jnts=5):
+        self.jnts=[]
         self.grpCtroles=[]
         #Positions and direction joints
         if directionAxi==[0,0,1]:
-            for j in range(jntskin+1):
-                if not j == jntskin+1:
-                    self.jntsRigSkin.append(self.JointInSpace(name+str(j),[jntskin-j,0,0]))
-            self.grpCtroles.append(self.createCnt(self.jntsRigSkin,[1,0,0],width)[0])#creo controles en los huesos del espacio con una direccion x
+            print ('Aun no se desarrollo esta direccion de la nurbs, comuniquese con el desarrollador. Gracias.')#creo controles en los huesos del espacio con una direccion x
         elif directionAxi==[1,0,0]:
-            for j in range(jntskin+1):
-                if not j == jntskin+1:
-                    self.jntsRigSkin.append(self.JointInSpace(name+str(j),[0,jntskin-j,0]))
-            self.grpCtroles.append(self.createCnt(self.jntsRigSkin,[0,1,0],width)[0])#creo controles en los huesos del espacio con una direccion y
+            print ('Aun no se desarrollo esta direccion de la nurbs, comuniquese con el desarrollador. Gracias.')#creo controles en los huesos del espacio con una direccion x
         elif directionAxi==[0,1,0]:
-            for j in range(-jntskin,jntskin):
-                if j < 40:
-                    self.jntsRigSkin.append(self.JointInSpace(name+str(j),[0,0,j]))
-                else: cmds.warning('El limite es 40 por ahora')
-            self.grpCtroles.append(self.createCnt(self.jntsRigSkin,[0,0,1],width))#creo controles en los huesos del espacio con una direccion z
+            for j in range(-jnts,jnts+1):
+                if j == 0:
+                    self.jnts.append(self.JointInSpace(name+'C'+str(j),[0,0,j]))
+                if j < 0:
+                    self.jnts.append(self.JointInSpace(name+'T'+str(j),[0,0,j]))
+                if j > 0:
+                    self.jnts.append(self.JointInSpace(name+'B'+str(j),[0,0,j]))
+            self.grpCtroles.append(self.createCnt(self.jnts,[0,0,1],width))#creo controles en los huesos del espacio con una direccion z
 
         #Create nurb with folicles
         self.nurb=cmds.nurbsPlane( ax=directionAxi,w=width, lr=lengthRatio,u=splitU,v=splitV,n=name+'_NSK')
@@ -83,39 +78,46 @@ class RigSpine():
         cmds.delete('hairSystem1','hairSystem1OutputCurves','nucleus1')
         self.grpFoll=cmds.rename('hairSystem1Follicles',(name+'_Follicles'+'_GRP'))
         self.follicles=cmds.listRelatives(self.grpFoll,children=1)
-        self.jnts=[]
+        self.jntsToSkin=[]
         for f in range(len(self.follicles)):
-            self.foll=cmds.rename(self.follicles[f], name+'Flc'+str(f)+'_FLC')
+            self.foll=cmds.rename(self.follicles[f], name+str(f)+'_FLC')
             cmds.delete(cmds.listRelatives(self.foll,children=1)[1])
             self.jnt=cmds.joint(name=name+str(f)+'_JSK',absolute=1)
-            self.jnts.append(self.jnt)
+            self.jntsToSkin.append(self.jnt)
             cmds.connectAttr( self.foll+'.outTranslate', self.jnt+'.translate',f=1)
             cmds.connectAttr( self.foll+'.outRotate', self.jnt+'.rotate',f=1)
-        cmds.parent(self.jnts[1:], w=1)
+        cmds.parent(self.jntsToSkin[1:], w=1)
 
-        #create skin
-        self.scl=cmds.skinCluster(self.jntsRigSkin,self.nurbName[0],n=name+'_SCL')
+        #create skin #Prune weights #Remove unused influences
+        self.scl=cmds.skinCluster(self.jnts,self.nurbName[0],n=name+'_SCL',mi=3,dr=14.0)[0]
+        cmds.select(self.nurbName[0])
+        mel.eval('doPruneSkinClusterWeightsArgList 1 { "'+str(0.2)+'" }')
+        mel.eval('removeUnusedInfluences')
+        cmds.select(cl=1)
 
-        #Creation Groups
-        self.gJoints=self.grupoDe(self.jnts,name+'_joints')
-        self.gJntsRig=self.grupoDe(self.jntsRigSkin,name+'_jointsRig')
-        self.follicles=cmds.listRelatives(self.grpFoll,children=1)
-        self.gCnts=self.grupoDe(self.grpCtroles,name+'_controls')
+        try:
+            #Creation Groups
+            self.gJoints=self.grupoDe(self.jntsToSkin,name+'_jointsToSkin')
+            self.gJntsRig=self.grupoDe(self.jnts,name+'_joint')
+            self.follicles=cmds.listRelatives(self.grpFoll,children=1)
+            self.gCnts=self.grupoDe(self.grpCtroles[0], name+'_controls')
+            self.gJntsRig=self.grupoDe([self.grpFoll,self.gJoints,self.gJntsRig,self.gCnts,self.nurbName[0]],name)
+        except:
+            cmds.delete(self.jntsToSkin)
 
-        self.gJntsRig=self.grupoDe([self.grpFoll,self.gJoints,self.gJntsRig,self.gCnts,self.nurbName[0]],name)
-
-        return self.nurbName[0],self.follicles,self.jnts,self.jntsRigSkin,self.scl,self.gCnts
+        return self.nurbName[0],self.follicles,self.jntsToSkin,self.jnts,self.scl,self.gCnts
 
     def createSpine(self):
         if not cmds.objExists(self.name+'_GRP'):
 
-            self.nurbCreation(self.name,self.directionAxi,self.splitU,self.splitV,self.width,self.lengthRatio,self.jntToskin)
+            self.nurbCreation(self.name,self.directionAxi,self.splitU,self.splitV,self.width,self.lengthRatio,self.jnts)
         else:
             cmds.warning('YA EXISTE '+ self.name +' CON ESE NOMBRE.')
-            newName=cmds.promptDialog(title='DESEA PONER OTRO NOMBRE?',message='Enter name:',
+            self.result =cmds.promptDialog(title='DESEA PONER OTRO NOMBRE?',message='Enter name:',
                         button=['Y','N'],defaultButton='Y', cancelButton='N',dismissString='N')
-            if newName == 'Y':
-                self.nurbCreation(str(self.name+'_DUPLICATE'),self.directionAxi,self.splitU,self.splitV,self.width,self.lengthRatio,self.jntToskin)
+            if self.result  == 'Y':
+                self.newName=cmds.promptDialog(query=True, text=True)
+                self.nurbCreation(str(self.newName),self.directionAxi,self.splitU,self.splitV,self.width,self.lengthRatio,self.jnts)
             else:
                 None
 
