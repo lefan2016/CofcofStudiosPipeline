@@ -23,7 +23,7 @@ class RigSpine():
         return self.jnt
 
     def grupoDe(self,objs,name,suff='_GRP'):#Made groups
-        self.grp=cmds.group(objs,n=name+suff)
+        self.grp=cmds.group(objs,n=str(name)+suff)
         return self.grp
 
     def createCnt(self,objs=[],dir=[0,0,1],rad=14,nameSuf='ZTR',nameTrf='TRF',nameCNT='CNT'):
@@ -51,7 +51,7 @@ class RigSpine():
                 cmds.parent(cnt,trf)
                 pcns=cmds.parentConstraint(cnt,obj)
                 scns=cmds.scaleConstraint(cnt,obj)
-                grpYcnt.append(ztr)
+                grpYcnt.append(ztr)[0]
             return grpYcnt
 
     def nurbCreation(self,name,directionAxi=[0,1,0],splitU=1,splitV=5,width=5,lengthRatio=5,jntskin=5):
@@ -62,7 +62,7 @@ class RigSpine():
         if directionAxi==[0,0,1]:
             for j in range(jntskin+1):
                 if not j == jntskin+1:
-                    self.jntsRigSkin.append(self.JointInSpace(name+str(j),[jntskin-j,0,0])
+                    self.jntsRigSkin.append(self.JointInSpace(name+str(j),[jntskin-j,0,0]))
             self.grpCtroles.append(self.createCnt(self.jntsRigSkin,[1,0,0],width)[0])#creo controles en los huesos del espacio con una direccion x
         elif directionAxi==[1,0,0]:
             for j in range(jntskin+1):
@@ -71,16 +71,17 @@ class RigSpine():
             self.grpCtroles.append(self.createCnt(self.jntsRigSkin,[0,1,0],width)[0])#creo controles en los huesos del espacio con una direccion y
         elif directionAxi==[0,1,0]:
             for j in range(-jntskin,jntskin):
-                if not j > 40:
-                    self.jntsRigSkin.append(self.JointInSpace(name+str(j),[0,0,jntskin]))
-            self.grpCtroles.append(self.createCnt(self.jntsRigSkin,[0,0,1],width)[0])#creo controles en los huesos del espacio con una direccion z
+                if j < 40:
+                    self.jntsRigSkin.append(self.JointInSpace(name+str(j),[0,0,j]))
+                else: cmds.warning('El limite es 40 por ahora')
+            self.grpCtroles.append(self.createCnt(self.jntsRigSkin,[0,0,1],width))#creo controles en los huesos del espacio con una direccion z
 
         #Create nurb with folicles
         self.nurb=cmds.nurbsPlane( ax=directionAxi,w=width, lr=lengthRatio,u=splitU,v=splitV,n=name+'_NSK')
         self.nurbName=cmds.rebuildSurface (self.nurb,rpo=1, rt=0, end=1,kr=0,kcp=0,kc=1,su=splitU,du=1,sv=splitV,dv=3,tol=0.01,fr=0,dir=2)#reconstruyo la build
         mel.eval('createHair '+str(splitU)+' '+str(splitV)+' 5 0 0 0 0 '+str(splitU)+' 0 2 2 1')
         cmds.delete('hairSystem1','hairSystem1OutputCurves','nucleus1')
-        self.grpFoll=cmds.rename('hairSystem1Follicles',(name+'Follicles'+'_GRP'))
+        self.grpFoll=cmds.rename('hairSystem1Follicles',(name+'_Follicles'+'_GRP'))
         self.follicles=cmds.listRelatives(self.grpFoll,children=1)
         self.jnts=[]
         for f in range(len(self.follicles)):
@@ -99,9 +100,9 @@ class RigSpine():
         self.gJoints=self.grupoDe(self.jnts,name+'_joints')
         self.gJntsRig=self.grupoDe(self.jntsRigSkin,name+'_jointsRig')
         self.follicles=cmds.listRelatives(self.grpFoll,children=1)
-        self.gCnts=self.grupoDe(self.grpCtroles,name+'_CNTS')
+        self.gCnts=self.grupoDe(self.grpCtroles,name+'_controls')
 
-        self.gJntsRig=self.grupoDe([self.grpFoll,self.gJoints,self.gJntsRig,self.gCnts,self.nurbName[0]])
+        self.gJntsRig=self.grupoDe([self.grpFoll,self.gJoints,self.gJntsRig,self.gCnts,self.nurbName[0]],name)
 
         return self.nurbName[0],self.follicles,self.jnts,self.jntsRigSkin,self.scl,self.gCnts
 
