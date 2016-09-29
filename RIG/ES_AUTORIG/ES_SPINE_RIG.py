@@ -1,7 +1,5 @@
 import maya.cmds as cmds
 import maya.mel as mel
-import pymel.core as pm
-import sys
 from PySide2 import QtCore, QtGui, QtUiTools
 
 class RigSpine():
@@ -69,7 +67,7 @@ class RigSpine():
                     self.jnts.append(self.JointInSpace(name+'T'+str(j),[0,0,j]))
                 if j > 0:
                     self.jnts.append(self.JointInSpace(name+'B'+str(j),[0,0,j]))
-            self.grpCtroles.append(self.createCnt(self.jnts,[0,0,1],width))#creo controles en los huesos del espacio con una direccion z
+        self.grpCtroles.append(self.createCnt(self.jnts,[0,0,1],width))#creo controles en los huesos del espacio con una direccion z
 
         #Create nurb with folicles
         self.nurb=cmds.nurbsPlane( ax=directionAxi,w=width, lr=lengthRatio,u=splitU,v=splitV,n=name+'_NSK')
