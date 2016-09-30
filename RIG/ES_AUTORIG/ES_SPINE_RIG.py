@@ -15,7 +15,7 @@ class RigSpine():
         self.lengthRatio=lengthRatio #Grosor del nurb
         self.jnts=jnts#Cantidad de huesos que blendeas para skiniar
 
-    def JointInSpace(self,n='',pos=[],suff='_JNT',r=1.5):#Made joints in space
+    def JointInSpace(self,n='',pos=[],r=1.5,suff='_JNT'):#Made joints in space
         cmds.select(cl=1)#deselecciono
         self.jnt=cmds.joint(name=n+suff,p=pos,radius=r)
         return self.jnt
@@ -36,6 +36,7 @@ class RigSpine():
                     newName=obj
                 #currentParent=cmds.listRelatives(obj,parent=1)
                 ztr=cmds.group(em=True,n=str(newName+nameSuf))
+                cmds.setAttr()
                 pcns=cmds.parentConstraint(obj,ztr)[0]
                 scns=cmds.scaleConstraint(obj,ztr)[0]
                 cmds.delete(pcns,scns)
@@ -62,11 +63,11 @@ class RigSpine():
         elif directionAxi==[0,1,0]:
             for j in range(-jnts,jnts+1):
                 if j == 0:
-                    self.jnts.append(self.JointInSpace(name+'C'+str(j),[0,0,j]))
+                    self.jnts.append(self.JointInSpace(name+'C'+str(j),[0,0,j],width/2))
                 if j < 0:
-                    self.jnts.append(self.JointInSpace(name+'T'+str(j),[0,0,j]))
+                    self.jnts.append(self.JointInSpace(name+'T'+str(j),[0,0,j],width/2))
                 if j > 0:
-                    self.jnts.append(self.JointInSpace(name+'B'+str(j),[0,0,j]))
+                    self.jnts.append(self.JointInSpace(name+'B'+str(j),[0,0,j],width/2))
         self.grpCtroles.append(self.createCnt(self.jnts,[0,0,1],width))#creo controles en los huesos del espacio con una direccion z
 
         #Create nurb with folicles
@@ -80,7 +81,7 @@ class RigSpine():
         for f in range(len(self.follicles)):
             self.foll=cmds.rename(self.follicles[f], name+str(f)+'_FLC')
             cmds.delete(cmds.listRelatives(self.foll,children=1)[1])
-            self.jnt=cmds.joint(name=name+str(f)+'_JSK',absolute=1)
+            self.jnt=cmds.joint(name=name+str(f)+'_JSK',absolute=1,radius=width/2)
             self.jntsToSkin.append(self.jnt)
             cmds.connectAttr( self.foll+'.outTranslate', self.jnt+'.translate',f=1)
             cmds.connectAttr( self.foll+'.outRotate', self.jnt+'.rotate',f=1)
@@ -99,7 +100,8 @@ class RigSpine():
             self.gJntsRig=self.grupoDe(self.jnts,name+'_joint')
             self.follicles=cmds.listRelatives(self.grpFoll,children=1)
             self.gCnts=self.grupoDe(self.grpCtroles[0], name+'_controls')
-            self.gJntsRig=self.grupoDe([self.grpFoll,self.gJoints,self.gJntsRig,self.gCnts,self.nurbName[0]],name)
+            self.gNurb=self.grupoDe(self.nurbName, name+'_Nurbs')
+            self.gJntsRig=self.grupoDe([self.grpFoll,self.gJoints,self.gJntsRig,self.gCnts,self.gNurb],name)
         except:
             cmds.delete(self.jntsToSkin)
 
