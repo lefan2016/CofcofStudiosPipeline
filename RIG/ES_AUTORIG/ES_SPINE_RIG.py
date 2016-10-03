@@ -1,11 +1,27 @@
 import maya.cmds as cmds
 import maya.mel as mel
 from PySide2 import QtCore, QtGui, QtUiTools
+'''
+ejecucion:
+import maya.cmds as cmds
+import sys
+path=r'\\NAS-ESPIRAL\Volume_1\PIPELINE\LOCAL\ES_SCRIPTS'
+if not path in sys.path:
+	sys.path.append(path)
+import ES_SPINE_RIG
+reload (ES_SPINE_RIG)
 
-class RigSpine():
-    '''
-    #Funciones pensadas para creacion de una spina con nurbsPlane
-    '''
+ar=RigSpine('L_SNAIL_EYE',#Nombre
+            [0,1,0],#Direccion de nurb
+            1,#subdiviciones de nurb en X
+            6,#subdiviciones de nurb en Y
+            6,#ancho de la nurb
+            2,#Tamaño de nurb
+            1)#Cantidad de joint y controles
+a=ar.createSpine()#Crea La nurb seteada
+'''
+class RigSpine():#Creacion de una spina con nurbsPlane
+
     def __init__(self,name,directionAxi,splitU,splitV,width,lengthRatio,jnts):
         self.name=name #Nombre de la espina y de su composicion ej:C_spine_spine_
         self.directionAxi=directionAxi #direccion del vector para crearlo ej:[0,1,0]
@@ -33,10 +49,10 @@ class RigSpine():
                 if '_' in obj:
                     newName=obj.split(obj.split('_')[-1:][0])[0]
                 else:
-                    newName=obj
+                     newName=obj
                 #currentParent=cmds.listRelatives(obj,parent=1)
                 ztr=cmds.group(em=True,n=str(newName+nameSuf))
-                cmds.setAttr()
+                matrix=cmds.xform(obj,q=1,matrix=1)
                 pcns=cmds.parentConstraint(obj,ztr)[0]
                 scns=cmds.scaleConstraint(obj,ztr)[0]
                 cmds.delete(pcns,scns)
@@ -49,6 +65,7 @@ class RigSpine():
                 cmds.parent(cnt,trf)
                 pcns=cmds.parentConstraint(cnt,obj,n=newName+'PCNS')
                 scns=cmds.scaleConstraint(cnt,obj,n=newName+'SCNS')
+                cmds.xform(ztr,matrix=matrix)
                 grpYcnt.append(ztr)
             return grpYcnt
 
@@ -81,11 +98,15 @@ class RigSpine():
         for f in range(len(self.follicles)):
             self.foll=cmds.rename(self.follicles[f], name+str(f)+'_FLC')
             cmds.delete(cmds.listRelatives(self.foll,children=1)[1])
-            self.jnt=cmds.joint(name=name+str(f)+'_JSK',absolute=1,radius=width/2)
+            self.jnt=cmds.joint(name=name+str(f)+'_JSK',absolute=1,radius=width/2,rotationOrder='xyz')
             self.jntsToSkin.append(self.jnt)
             cmds.connectAttr( self.foll+'.outTranslate', self.jnt+'.translate',f=1)
             cmds.connectAttr( self.foll+'.outRotate', self.jnt+'.rotate',f=1)
         cmds.parent(self.jntsToSkin[1:], w=1)
+        for j in jntsToSkin:#Fix bones rotation axis
+            cmds.setAttr(j+'.jointOrientX',0)
+            cmds.setAttr(j+'.jointOrientY',0)
+            cmds.setAttr(j+'.jointOrientZ',0)
 
         #create skin #Prune weights #Remove unused influences
         self.scl=cmds.skinCluster(self.jnts,self.nurbName[0],n=name+'_SCL',mi=3,dr=14.0)[0]
