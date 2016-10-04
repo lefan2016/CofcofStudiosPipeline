@@ -1,25 +1,8 @@
+# -*- encoding: utf-8 -*-
 import maya.cmds as cmds
 import maya.mel as mel
 from PySide2 import QtCore, QtGui, QtUiTools
-'''
-ejecucion:
-import maya.cmds as cmds
-import sys
-path=r'\\NAS-ESPIRAL\Volume_1\PIPELINE\LOCAL\ES_SCRIPTS'
-if not path in sys.path:
-	sys.path.append(path)
-import ES_SPINE_RIG
-reload (ES_SPINE_RIG)
 
-ar=RigSpine('L_SNAIL_EYE',#Nombre
-            [0,1,0],#Direccion de nurb
-            1,#subdiviciones de nurb en X
-            6,#subdiviciones de nurb en Y
-            6,#ancho de la nurb
-            2,#Tamaño de nurb
-            1)#Cantidad de joint y controles
-a=ar.createSpine()#Crea La nurb seteada
-'''
 class RigSpine():#Creacion de una spina con nurbsPlane
 
     def __init__(self,name,directionAxi,splitU,splitV,width,lengthRatio,jnts):
@@ -103,7 +86,7 @@ class RigSpine():#Creacion de una spina con nurbsPlane
             cmds.connectAttr( self.foll+'.outTranslate', self.jnt+'.translate',f=1)
             cmds.connectAttr( self.foll+'.outRotate', self.jnt+'.rotate',f=1)
         cmds.parent(self.jntsToSkin[1:], w=1)
-        for j in jntsToSkin:#Fix bones rotation axis
+        for j in self.jntsToSkin:#Fix bones rotation axis
             cmds.setAttr(j+'.jointOrientX',0)
             cmds.setAttr(j+'.jointOrientY',0)
             cmds.setAttr(j+'.jointOrientZ',0)
@@ -121,7 +104,7 @@ class RigSpine():#Creacion de una spina con nurbsPlane
             self.gJntsRig=self.grupoDe(self.jnts,name+'_joint')
             self.follicles=cmds.listRelatives(self.grpFoll,children=1)
             self.gCnts=self.grupoDe(self.grpCtroles[0], name+'_controls')
-            self.gNurb=self.grupoDe(self.nurbName, name+'_Nurbs')
+            self.gNurb=self.grupoDe(self.nurbName, name+'_NURBS')
             self.gJntsRig=self.grupoDe([self.grpFoll,self.gJoints,self.gJntsRig,self.gCnts,self.gNurb],name)
         except:
             cmds.delete(self.jntsToSkin)
