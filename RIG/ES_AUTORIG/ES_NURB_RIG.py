@@ -13,14 +13,16 @@ class RigSpine():#Creacion de una spina con nurbsPlane
         self.width=width #Ancho total del nurb
         self.lengthRatio=lengthRatio #Grosor del nurb
         self.jnts=jnts#Cantidad de huesos que blendeas para skiniar
+
     def clip(val, min_, max_):
         return min_ if val < min_ else max_ if val > max_ else val
+
     def JointInSpace(self,n='',pos=[],r=1.5,suff='_JNT'):#Made joints in space
         cmds.select(cl=1)#deselecciono
         self.jnt=cmds.joint(name=n+suff,p=pos,radius=r)
         return self.jnt
 
-    def grupoDe(self,objs,name,suff='_GRP',inherits=1):#Made groups
+    def grupoDe(self,objs,name,inherits=1,suff='_GRP'):#Made groups
         self.grp=cmds.group(objs,n=str(name)+str(suff))
         cmds.setAttr(str(self.grp)+'.inheritsTransform', inherits)
         return self.grp
@@ -63,29 +65,30 @@ class RigSpine():#Creacion de una spina con nurbsPlane
         elif directionAxi==[1,0,0]:
             print ('Aun no se desarrollo esta direccion de la nurbs, comuniquese con el desarrollador. Gracias.')#creo controles en los huesos del espacio con una direccion x
         elif directionAxi==[0,1,0]:
-            for j in range(-jnts,jnts+1):
+            lista=range(-1+-jnts,jnts+1)
+            for j in lista:
                 if j == 0:
-                    self.jnts.append(self.JointInSpace(name+'C'+str(j),[0,0,j],width/2))
+                    self.jnts.append(self.JointInSpace(name+'C'+str(j),[0,0,j],splitV/splitV))
                 if j < 0:
-                    j = j / len(range(jnts))
-                    self.jnts.append(self.JointInSpace(name+'T'+str(j),[0,0,j],width/2))
+                    self.jnts.append(self.JointInSpace(name+'T'+str(j),[0,0,j],splitV/splitV))
                 if j > 0:
-                    j = j / len(range(jnts))
-                    self.jnts.append(self.JointInSpace(name+'B'+str(j),[0,0,j],width/2))
+                    self.jnts.append(self.JointInSpace(name+'B'+str(j),[0,0,j],splitV/splitV))
         self.grpCtroles.append(self.createCnt(self.jnts,[0,0,1],width))#creo controles en los huesos del espacio con una direccion z
 
         #Create nurb with folicles
         self.nurb=cmds.nurbsPlane( ax=directionAxi,w=width, lr=splitV,u=splitU,v=splitV,n=name+'_NSK')
         self.nurbName=cmds.rebuildSurface (self.nurb,rpo=1, rt=0, end=1,kr=0,kcp=0,kc=1,su=splitU,du=1,sv=splitV,dv=3,tol=0.01,fr=0,dir=2)#reconstruyo la build
+        cmds.setAttr(str(self.nurbName[0])+'.inheritsTransform', 0)
         mel.eval('createHair '+str(splitU)+' '+str(splitV)+' 5 0 0 0 0 '+str(splitU)+' 0 2 2 1')
         cmds.delete('hairSystem1','hairSystem1OutputCurves','nucleus1')
         self.grpFoll=cmds.rename('hairSystem1Follicles',(name+'_Follicles'+'_GRP'))
+        cmds.setAttr(str(self.grpFoll)+'.inheritsTransform', 0)
         self.follicles=cmds.listRelatives(self.grpFoll,children=1)
         self.jntsToSkin=[]
         for f in range(len(self.follicles)):
             self.foll=cmds.rename(self.follicles[f], name+str(f)+'_FLC')
             cmds.delete(cmds.listRelatives(self.foll,children=1)[1])
-            self.jnt=cmds.joint(name=name+str(f)+'_JSK',absolute=1,radius=width/2,rotationOrder='xyz')
+            self.jnt=cmds.joint(name=name+str(f)+'_JSK',absolute=1,radius=0.5,rotationOrder='xyz')
             self.jntsToSkin.append(self.jnt)
             cmds.connectAttr( self.foll+'.outTranslate', self.jnt+'.translate',f=1)
             cmds.connectAttr( self.foll+'.outRotate', self.jnt+'.rotate',f=1)
@@ -94,6 +97,7 @@ class RigSpine():#Creacion de una spina con nurbsPlane
             cmds.setAttr(j+'.jointOrientX',0)
             cmds.setAttr(j+'.jointOrientY',0)
             cmds.setAttr(j+'.jointOrientZ',0)
+
 
         #create skin #Prune weights #Remove unused influences
         self.scl=cmds.skinCluster(self.jnts,self.nurbName[0],n=name+'_SCL',mi=3,dr=14.0)[0]
