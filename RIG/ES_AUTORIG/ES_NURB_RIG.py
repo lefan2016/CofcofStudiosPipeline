@@ -13,14 +13,16 @@ class RigSpine():#Creacion de una spina con nurbsPlane
         self.width=width #Ancho total del nurb
         self.lengthRatio=lengthRatio #Grosor del nurb
         self.jnts=jnts#Cantidad de huesos que blendeas para skiniar
-
+    def clip(val, min_, max_):
+        return min_ if val < min_ else max_ if val > max_ else val
     def JointInSpace(self,n='',pos=[],r=1.5,suff='_JNT'):#Made joints in space
         cmds.select(cl=1)#deselecciono
         self.jnt=cmds.joint(name=n+suff,p=pos,radius=r)
         return self.jnt
 
-    def grupoDe(self,objs,name,suff='_GRP'):#Made groups
-        self.grp=cmds.group(objs,n=str(name)+suff)
+    def grupoDe(self,objs,name,suff='_GRP',inherits=1):#Made groups
+        self.grp=cmds.group(objs,n=str(name)+str(suff))
+        cmds.setAttr(str(self.grp)+'.inheritsTransform', inherits)
         return self.grp
 
     def createCnt(self,objs=[],dir=[0,0,1],rad=14,nameSuf='ZTR',nameTrf='TRF',nameCNT='CNT'):
@@ -65,13 +67,15 @@ class RigSpine():#Creacion de una spina con nurbsPlane
                 if j == 0:
                     self.jnts.append(self.JointInSpace(name+'C'+str(j),[0,0,j],width/2))
                 if j < 0:
+                    j = j / len(range(jnts))
                     self.jnts.append(self.JointInSpace(name+'T'+str(j),[0,0,j],width/2))
                 if j > 0:
+                    j = j / len(range(jnts))
                     self.jnts.append(self.JointInSpace(name+'B'+str(j),[0,0,j],width/2))
         self.grpCtroles.append(self.createCnt(self.jnts,[0,0,1],width))#creo controles en los huesos del espacio con una direccion z
 
         #Create nurb with folicles
-        self.nurb=cmds.nurbsPlane( ax=directionAxi,w=width, lr=lengthRatio,u=splitU,v=splitV,n=name+'_NSK')
+        self.nurb=cmds.nurbsPlane( ax=directionAxi,w=width, lr=splitV,u=splitU,v=splitV,n=name+'_NSK')
         self.nurbName=cmds.rebuildSurface (self.nurb,rpo=1, rt=0, end=1,kr=0,kcp=0,kc=1,su=splitU,du=1,sv=splitV,dv=3,tol=0.01,fr=0,dir=2)#reconstruyo la build
         mel.eval('createHair '+str(splitU)+' '+str(splitV)+' 5 0 0 0 0 '+str(splitU)+' 0 2 2 1')
         cmds.delete('hairSystem1','hairSystem1OutputCurves','nucleus1')
@@ -100,14 +104,14 @@ class RigSpine():#Creacion de una spina con nurbsPlane
 
         try:
             #Creation Groups
-            self.gJoints=self.grupoDe(self.jntsToSkin,name+'_jointsToSkin')
-            self.gJntsRig=self.grupoDe(self.jnts,name+'_joint')
+            self.gJoints=self.grupoDe(self.jntsToSkin,name+'_jointsToSkin',0)
+            self.gJntsRig=self.grupoDe(self.jnts,name+'_joint',0)
             self.follicles=cmds.listRelatives(self.grpFoll,children=1)
             self.gCnts=self.grupoDe(self.grpCtroles[0], name+'_controls')
-            self.gNurb=self.grupoDe(self.nurbName, name+'_NURBS')
+            self.gNurb=self.grupoDe(self.nurbName, name+'_NURBS',0)
             self.gJntsRig=self.grupoDe([self.grpFoll,self.gJoints,self.gJntsRig,self.gCnts,self.gNurb],name)
         except:
-            cmds.delete(self.jntsToSkin)
+            cmds.delete([self.grpFoll,self.gJoints,self.gJntsRig,self.gCnts,self.gNurb])
 
         return self.nurbName[0],self.follicles,self.jntsToSkin,self.jnts,self.scl,self.gCnts
 
