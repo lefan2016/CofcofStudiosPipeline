@@ -1,10 +1,9 @@
 # -*- encoding: utf-8 -*-
-import maya.standalone
-maya.standalone.initialize("Python")
 import maya.cmds as cmds
 import maya.mel as mel
 from PySide2 import QtCore, QtGui, QtUiTools
-'''USO EN MAYA:
+'''
+USO EN MAYA:
 import maya.cmds as cmds
 import sys
 path=r'P:\LOCAL\ES_SCRIPTS\RIG\ES_AUTORIG'
@@ -56,27 +55,20 @@ class RigSpine():#Creacion de una spina con nurbsPlane
                 newName=obj.split(obj.split('_')[-1:][0])[0]
             else:
                  newName=obj
-            for obj in objs:
-                if '|' in obj:
-                    obj=obj.split('|')[-1]
-                if '_' in obj:
-                    newName=obj.split(obj.split('_')[-1:][0])[0]
-                else:
-                     newName=obj
-                ztr=cmds.group(em=True,n=str(newName+nameSuf))
-                matrix=cmds.xform(obj,q=1,matrix=1)
-                if squad:
-                    diametro=rad
-                    trf=cmds.curve(n=str(newName+nameTrf),d=1,objectSpace=True,p=[(diametro,diametro,0),(-diametro,diametro,0),(-diametro,-diametro,0),(diametro,-diametro,0),(diametro,diametro,0)])
-                else:
-                    trf=cmds.duplicate(ztr,n=str(newName+nameTrf))[0]
-                cnt=cmds.circle(radius=rad/2.0,nr=dir,name=str(newName+nameCNT))[0]
-                cmds.parent(cnt,trf)
-                cmds.parent(trf,ztr)
-                cmds.xform(ztr,matrix=matrix)
-                pcns=cmds.parentConstraint(cnt,obj,n=newName+'PCNS')[0]
-                scns=cmds.scaleConstraint(cnt,obj,n=newName+'SCNS')[0]
-                grpYcnt.append(ztr)
+            ztr=cmds.group(em=True,n=str(newName+nameSuf))
+            matrix=cmds.xform(obj,q=1,matrix=1)
+            if squad:
+                diametro=rad
+                trf=cmds.curve(n=str(newName+nameTrf),d=1,objectSpace=True,p=[(diametro,diametro,0),(-diametro,diametro,0),(-diametro,-diametro,0),(diametro,-diametro,0),(diametro,diametro,0)])
+            else:
+                trf=cmds.duplicate(ztr,n=str(newName+nameTrf))[0]
+            cnt=cmds.circle(radius=rad/2.0,nr=dir,name=str(newName+nameCNT))[0]
+            cmds.parent(cnt,trf)
+            cmds.parent(trf,ztr)
+            cmds.xform(ztr,matrix=matrix)
+            pcns=cmds.parentConstraint(cnt,obj,n=newName+'PCNS')[0]
+            scns=cmds.scaleConstraint(cnt,obj,n=newName+'SCNS')[0]
+            grpYcnt.append(ztr)
         return grpYcnt
 
     def nurbCreation(self,name,directionAxi=[0,1,0],splitU=1,splitV=5,width=5,lengthRatio=5,jnt=2):
@@ -92,7 +84,7 @@ class RigSpine():#Creacion de una spina con nurbsPlane
             for j in lista:
                 pos=j/float(splitV/(splitV/2))
                 side= 'B' if j<0 else 'C' if j==0 else 'T'
-                joints.append(self.JointInSpace(name+side+str(abs(j)),[0,0,pos],width+0.2/2))
+                joints.append(self.JointInSpace(name+side+str(j),[0,0,pos],width+0.2/2))
         self.grpCtroles=[]
         self.grpCtroles.append(self.createCnt(joints,[0,0,1],width,True))#creo controles en los huesos del espacio con una direccion z
 
