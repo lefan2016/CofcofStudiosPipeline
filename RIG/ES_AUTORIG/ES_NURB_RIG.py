@@ -40,7 +40,7 @@ class RigSpine():#Creacion de una spina con nurbsPlane
         self.jnt=cmds.joint(name=n+suff,p=pos,radius=r)
         return self.jnt
 
-    def grupoDe(self,objs,name,inherits=1,shape=False,suff='_GRP'):#Made groups
+    def grupoDe(self,objs,name,inherits=True,shape=False,suff='_GRP',vis=True):#Made groups
         if not shape:
             self.grp=cmds.group(objs,n=str(name)+str(suff))
             cmds.setAttr(str(self.grp)+'.inheritsTransform', inherits)
@@ -50,6 +50,8 @@ class RigSpine():#Creacion de una spina con nurbsPlane
             cmds.rename(cmds.listRelatives(self.sp,shapes=True),str(name)+str('_CNTSH'))
             cmds.parent(objs,self.sp)
             cmds.setAttr(str(self.grp)+'.inheritsTransform', inherits)
+        if not vis:
+            cmds.setAttr( str(self.grp) + '.visibility', False )
         return self.grp
 
     def createCnt( self, objs=[] ,dir=[0,0,1] ,rad=14 ,squad=False ,nameSuf='ZTR' ,nameTrf='TRF' ,nameCNT='CNT' ):
@@ -201,8 +203,9 @@ class RigSpine():#Creacion de una spina con nurbsPlane
         mel.eval('createHair '+str(splitU)+' '+str(splitV)+' 5 0 0 0 0 '+str(splitU)+' 0 2 2 1')
         cmds.delete('hairSystem1','hairSystem1OutputCurves','nucleus1')
         self.grpFoll=cmds.rename('hairSystem1Follicles',(name+'_Follicles'+'_GRP'))
-        cmds.setAttr(str(self.grpFoll)+'.inheritsTransform', 0)
-        self.follicles=cmds.listRelatives(self.grpFoll,children=1)
+        cmds.setAttr(str(self.grpFoll)+'.inheritsTransform', False)
+        cmds.setAttr(str(self.grpFoll)+'.visibility', False)
+        self.follicles=cmds.listRelatives(self.grpFoll,children=True)
         self.jntsToSkin=[]
         for f in range(len(self.follicles)):
             self.foll=cmds.rename(self.follicles[f], name+str(f)+'_FLC')
@@ -223,11 +226,11 @@ class RigSpine():#Creacion de una spina con nurbsPlane
         mel.eval('removeUnusedInfluences')
         cmds.select(cl=1)
         #Creation Groups
-        self.gJoints=self.grupoDe(self.jntsToSkin,name+'_jointsToSkin',False)
-        self.gJntsRig=self.grupoDe(joints,name+'_joint',False)
-        self.follicles=cmds.listRelatives(self.grpFoll,children=1)
-        self.gCnts=self.grupoDe(self.grpCtroles[0], name+'_controls',True,shape=True)
-        self.gNurb=self.grupoDe(self.nurbName, name+'_NURBS',False)
+        self.gJoints=self.grupoDe(self.jntsToSkin,name+'_jointsToSkin',inherits=False,vis=False)
+        self.gJntsRig=self.grupoDe(joints,name+'_joint',inherits=False,vis=False)
+        self.follicles=cmds.listRelatives(self.grpFoll,children=True)
+        self.gCnts=self.grupoDe(self.grpCtroles[0], name+'_controls',inherits=True,shape=True)
+        self.gNurb=self.grupoDe(self.nurbName, name=name+'_NURBS',inherits=False)
         self.gMaster=self.grupoDe([self.grpFoll,self.gJoints,self.gJntsRig,self.gCnts,self.gNurb],name)
 
         return [self.nurbName[0],self.follicles,self.jntsToSkin,joints,self.scl,self.gCnts]
@@ -251,7 +254,7 @@ class RigSpine():#Creacion de una spina con nurbsPlane
         #Creo los deformadores con su conexion y los deformadores
         self.deformers=self.createDeformsBlendShape(self.datos[0],cmds.listRelatives(self.datos[5])[0],tipo)
         #Creo un grupo para los deformadores
-        self.gDef=self.grupoDe(self.deformers[0:2],self.name+'_Deformers',False)
+        self.gDef=self.grupoDe(self.deformers[0:2],self.name+'_Deformers',inherits=False,vis=False)
         #Neto el nuevo deformador al grupo master
         cmds.parent(self.gDef,self.gMaster)
 
