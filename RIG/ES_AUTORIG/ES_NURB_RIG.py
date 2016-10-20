@@ -78,15 +78,13 @@ class RigSpine():#Creacion de una spina con nurbsPlane
             grpYcnt.append(ztr)
         return grpYcnt
 
-    def createAttr(self, objs=None, Attrs=None, min=0, max=1.0, defa=0 ):
-        for obj in objs:
-            obj = str( obj )
-            for nV in Attrs:
-                nV = str( nV )
-                if not cmds.attributeQuery( nV, n=nV ,exists=True ):
-                    cmds.addAttr( nV, sn=nV, dv=defa, minValue=min, maxValue=max, k=1 )
+    def createAttr(self, objs=[], Attrs=[], min=0, max=1.0, defa=0 ):
+        for obj in [objs]:
+            for nV in [Attrs]:
+                if not cmds.attributeQuery( nV, n=obj ,exists=True ):
+                    cmds.addAttr( obj, sn=str( nV ), ln=str( nV ), dv=defa, minValue=min, maxValue=max, k=1 )
                 else:
-                    cmds.warning( 'El ' + obj + ' ya contienen atributos con el nombre ' + nV )
+                    cmds.warning( 'El ' + obj + ' ya contienen atributos con el nombre ' + str( nV ) )
 
     def createCopyAndBlendShape(self,obj,descrip='_FORWAVE',suf='_NBS'):#crea el duplicado y luego lo adiere al original mediante un blendshape
         #Coloco el objeto a copiar en el origen
@@ -102,7 +100,7 @@ class RigSpine():#Creacion de una spina con nurbsPlane
             nbs=cmds.blendShape(geometry=copy,target=obj)[0]
         return copy,nbs
 
-    def createDeformsBlendShape(self,obj=None, controlAtt=None, tipoDeform='wave'):
+    def createDeformsBlendShape(self,obj=None, control=None, tipoDeform='wave'):
         if tipoDeform=='wave':
             descripcion='_FORWAVE'
             if not cmds.objExists(obj+descripcion):
@@ -116,18 +114,18 @@ class RigSpine():#Creacion de una spina con nurbsPlane
                 ndf = cmds.rename(deform[0],copy+'_NWV')
                 cmds.setAttr(str(nnl)+'.tz',-dist)
                 #Creo los atributos en el control deseado
-                if controlAtt!=None:
+                if control!=None:
                     nVale=['waveOnOff','offset','amplitude','wavelength']
-                    self.createAttr( controlAtt, nVale[0] ,0 ,1.0 ,0 )
-                    self.createAttr( controlAtt, nVale[1] ,0 ,50.0 ,50.0 )
-                    self.createAttr( controlAtt, nVale[2] ,0 ,100, 0.5 )
-                    self.createAttr( controlAtt, nVale[3] ,0.1 ,10.0 ,1.4 )
+                    self.createAttr( control, nVale[0] ,0 ,1.0 ,0 )
+                    self.createAttr( control, nVale[1] ,0 ,50.0 ,50.0 )
+                    self.createAttr( control, nVale[2] ,0 ,100, 0.5 )
+                    self.createAttr( control, nVale[3] ,0.1 ,10.0 ,1.4 )
                     #Conecto los atributos con el deformador
                     try:
-                        cmds.connectAttr(controlAtt+'.'+nVale[0], nbs+'.'+copy,f=True)
-                        cmds.expression(o=controlAtt,s=str(ndf)+"."+nVale[1]+"=time/"+str(controlAtt)+"."+ nVale[1] +";")
-                        cmds.expression(o=controlAtt,s=str(ndf)+"."+nVale[2]+"="+str(controlAtt)+"."+ nVale[2] +";")
-                        cmds.expression(o=controlAtt,s=str(ndf)+"."+nVale[3]+"="+str(controlAtt)+"."+ nVale[3] +";")
+                        cmds.connectAttr(control+'.'+nVale[0], nbs+'.'+copy,f=True)
+                        cmds.expression(o=control,s=str(ndf)+"."+nVale[1]+"=time/"+str(control)+"."+ nVale[1] +";")
+                        cmds.expression(o=control,s=str(ndf)+"."+nVale[2]+"="+str(control)+"."+ nVale[2] +";")
+                        cmds.expression(o=control,s=str(ndf)+"."+nVale[3]+"="+str(control)+"."+ nVale[3] +";")
                     except RuntimeError:
                         pass
                     #Oculto la visivilidad de los objetos creados
@@ -156,18 +154,18 @@ class RigSpine():#Creacion de una spina con nurbsPlane
                 else:
                     nbs=cmds.blendShape(geometry=copy,target=obj)
                 #Add atributos
-                if controlAtt!=None:
+                if control!=None:
                     nVale=['bendOnOff','curvature','lowBound','highBound']
-                    self.createAttr( controlAtt, nVale[0] ,0 ,1.0 ,0 )
-                    self.createAttr( controlAtt, nVale[1] ,0 ,2000.0 ,1500.0 )
-                    self.createAttr( controlAtt, nVale[2] ,-3.0 ,3.0 ,2.2 )
-                    self.createAttr( controlAtt, nVale[3] ,-3.0 ,3.0 ,2.0 )
+                    self.createAttr( control, nVale[0] ,0 ,1.0 ,0 )
+                    self.createAttr( control, nVale[1] ,0 ,2000.0 ,1500.0 )
+                    self.createAttr( control, nVale[2] ,-3.0 ,3.0 ,2.2 )
+                    self.createAttr( control, nVale[3] ,-3.0 ,3.0 ,2.0 )
 
                     try:
-                        cmds.connectAttr(controlAtt+'.'+nVale[0], nbs+'.'+copy,f=True)
-                        cmds.expression(o=controlAtt,s=str(ndf)+"."+nVale[1]+"=time/"+str(controlAtt)+"."+ nVale[1] +";")
-                        cmds.expression(o=controlAtt,s=str(ndf)+"."+nVale[2]+"="+str(controlAtt)+"."+ nVale[2] +";")
-                        cmds.expression(o=controlAtt,s=str(ndf)+"."+nVale[3]+"="+str(controlAtt)+"."+ nVale[3] +";")
+                        cmds.connectAttr(control+'.'+nVale[0], nbs+'.'+copy,f=True)
+                        cmds.expression(o=control,s=str(ndf)+"."+nVale[1]+"=time/"+str(control)+"."+ nVale[1] +";")
+                        cmds.expression(o=control,s=str(ndf)+"."+nVale[2]+"="+str(control)+"."+ nVale[2] +";")
+                        cmds.expression(o=control,s=str(ndf)+"."+nVale[3]+"="+str(control)+"."+ nVale[3] +";")
                     except RuntimeError:
                         pass
 
