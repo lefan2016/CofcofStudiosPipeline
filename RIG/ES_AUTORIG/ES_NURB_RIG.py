@@ -89,18 +89,21 @@ class RigSpine():#Creacion de una spina con nurbsPlane
                     cmds.warning( 'El ' + obj + ' ya contienen atributos con el nombre ' + str( nV ) )
 
     def createCopyAndBlendShape(self,obj,descrip='_FORWAVE',suf='_NBS'):#crea el duplicado y luego lo adiere al original mediante un blendshape
-        #Coloco el objeto a copiar en el origen
-        bindPose=cmds.dagPose(obj,q=True,bindPose=True)[0]
-        cmds.dagPose( bindPose, restore=True)
-
-        copy = cmds.duplicate(obj,n=obj+descrip)[0]
-        obj=str(obj)
-        #Crea blendshape si no existe lo agrega
-        if not cmds.objExists(obj+suf):
-            nbs=cmds.blendShape([copy,obj],n=obj+suf)[0]
+        if not cmds.objExists(obj+descrip+suf):
+            #Coloco el objeto a copiar en el origen
+            bindPose=cmds.dagPose(obj,q=True,bindPose=True)[0]
+            cmds.dagPose( bindPose, restore=True)
+            #Duplica el objeto para trabajarlo
+            copy = cmds.duplicate(obj,n=obj+descrip)[0]
+            obj=str(obj)
+            #Crea blendshape si no existe lo agrega
+            if not cmds.objExists(obj+suf):
+                nbs=cmds.blendShape([copy,obj],n=obj+suf)[0]
+            else:
+                nbs=cmds.blendShape(geometry=copy,target=str(obj)+suf)[0]
+            return copy,nbs
         else:
-            nbs=cmds.blendShape(geometry=copy,target=obj)[0]
-        return copy,nbs
+            cmds.warning('Ya existe el deformador ' + str(obj) + descrip + suf )
 
     def createDeformsBlendShape(self,obj=None, control=None, tipoDeform='wave'):
         if tipoDeform=='wave':
@@ -125,60 +128,54 @@ class RigSpine():#Creacion de una spina con nurbsPlane
                     #Conecto los atributos con el deformador
                     try:
                         cmds.connectAttr(control+'.'+nVale[0], nbs+'.'+copy,f=True)
-                        cmds.expression(o=control,s=str(ndf)+"."+nVale[1]+"=time/"+str(control)+"."+ nVale[1] +";")
-                        cmds.expression(o=control,s=str(ndf)+"."+nVale[2]+"="+str(control)+"."+ nVale[2] +";")
-                        cmds.expression(o=control,s=str(ndf)+"."+nVale[3]+"="+str(control)+"."+ nVale[3] +";")
+                        cmds.expression(o=control,s=str(ndf)+"."+nVale[1]+"=time/"+str(control)+"."+ nVale[1] +";", n=obj+descripcion+'_EXP')
+                        cmds.expression(o=control,s=str(ndf)+"."+nVale[2]+"="+str(control)+"."+ nVale[2] +";", n=obj+descripcion+'_EXP')
+                        cmds.expression(o=control,s=str(ndf)+"."+nVale[3]+"="+str(control)+"."+ nVale[3] +";", n=obj+descripcion+'_EXP')
                     except RuntimeError:
                         pass
-                    #Oculto la visivilidad de los objetos creados
-                    cmds.setAttr(copy+'.visibility',0)
-                    cmds.setAttr(nnl+'.visibility',0)
                 else:
                     print 'FALTA ESPECIFICAR EL CONTROL DONDE IRAN SUS ATRIBUTOS'
             else:
                 print 'YA EXISTE ESE DEFORMADOR ' +tipoDeform +' LLAMADO : '+ obj + descripcion
+            return copy,nnl,ndf,nbs
 
         if tipoDeform=='bend':
-            if not cmds.objExists(obj+'_FORBEND'):
+            descripcion='_FORBEND'
+            if not cmds.objExists(obj+descripcion):
+                #Crea blendshape si no existe lo agrega
+                copy,nbs=self.createCopyAndBlendShape(obj,descripcion)
+                #Creo el deformador con las siguientes propiedades
                 deform = None
-                curvature=70.0
-                copy = cmds.duplicate(obj,n=obj+'_FORBEND')[0]
-
-                deform = mel.eval("nonLinear -type bend -lowBound -2.2 -highBound 2 -curvature "+ str(curvature) +";")
+                curvature=30.0
+                deform = mel.eval("nonLinear -type bend -lowBound -5.0 -highBound 5.0 -curvature " + str(curvature) +" "+ str(cmds.listRelatives(copy)[0]) +";")
                 nnl = cmds.rename(deform[1],copy+'_NLB')
                 ndf = cmds.rename(deform[0],copy+'_NBD')
-                cmds.setAttr(str(nnl)+'.tz',curvature)
-                cmds.setAttr(str(nnl)+'.rx',90.0)
-                cmds.setAttr(str(nnl)+'.rz',90.0)
-                #Crea blendshape si no existe lo agrega
-                if not cmds.objExists(str(obj)+'_NBS'):
-                    nbs=cmds.blendShape([copy,obj],n=str(obj)+'_NBS')
-                else:
-                    nbs=cmds.blendShape(geometry=copy,target=obj)
+                cmds.setAttr(str(nnl)+'.tz',-5.0)
+                cmds.setAttr(str(nnl)+'.rx',90)
+                cmds.setAttr(str(nnl)+'.rz',90)
+                cmds.setAttr(str(nnl)+'.sx',5)
+                cmds.setAttr(str(nnl)+'.sy',5)
+                cmds.setAttr(str(nnl)+'.sz',5)
                 #Add atributos
                 if control!=None:
                     nVale=['bendOnOff','curvature','lowBound','highBound']
                     self.createAttr( control, nVale[0] ,0 ,1.0 ,0 )
-                    self.createAttr( control, nVale[1] ,0 ,2000.0 ,1500.0 )
-                    self.createAttr( control, nVale[2] ,-3.0 ,3.0 ,2.2 )
-                    self.createAttr( control, nVale[3] ,-3.0 ,3.0 ,2.0 )
-
+                    self.createAttr( control, nVale[1] ,-50.0 ,50.0 ,30.0 )
+                    self.createAttr( control, nVale[2] ,-5.0 ,5.0 ,-2.2 )
+                    self.createAttr( control, nVale[3] ,-5.0 ,5.0 ,2.0 )
+                    #Conecto los atributos con el deformador
                     try:
                         cmds.connectAttr(control+'.'+nVale[0], nbs+'.'+copy,f=True)
-                        cmds.expression(o=control,s=str(ndf)+"."+nVale[1]+"=time/"+str(control)+"."+ nVale[1] +";")
-                        cmds.expression(o=control,s=str(ndf)+"."+nVale[2]+"="+str(control)+"."+ nVale[2] +";")
-                        cmds.expression(o=control,s=str(ndf)+"."+nVale[3]+"="+str(control)+"."+ nVale[3] +";")
+                        cmds.expression(o=control,s=str(ndf)+"."+nVale[1]+"="+str(control)+"."+ nVale[1] +";", n=obj+descripcion+'_EXP')
+                        cmds.expression(o=control,s=str(ndf)+"."+nVale[2]+"="+str(control)+"."+ nVale[2] +";", n=obj+descripcion+'_EXP')
+                        cmds.expression(o=control,s=str(ndf)+"."+nVale[3]+"="+str(control)+"."+ nVale[3] +";", n=obj+descripcion+'_EXP')
                     except RuntimeError:
                         pass
-
-                    cmds.setAttr(copy+'.visibility',0)
-                    cmds.setAttr(nnl+'.visibility',0)
-
                 else:
                     print 'FALTA ESPECIFICAR EL CONTROL DONDE IRAN SUS ATRIBUTOS'
             else:
-                print 'YA EXISTE ESE DEFORMADOR ' +tipoDeform +' LLAMADO : '+ obj+'_FORWAVE'
-        return [copy,nnl,ndf,nbs]
+                print 'YA EXISTE ESE DEFORMADOR ' +tipoDeform +' LLAMADO : '+ obj + descripcion
+            return copy,nnl,ndf,nbs
 
     def nurbCreation(self,name,directionAxi=[0,1,0],splitU=1,splitV=5,width=0.1,lengthRatio=0.5,jnt=2):
         joints=[]
@@ -238,7 +235,6 @@ class RigSpine():#Creacion de una spina con nurbsPlane
     def createSpine(self):
         if not cmds.objExists(self.name+'_GRP'):
             self.datos=self.nurbCreation(self.name,self.directionAxi,self.splitU,self.splitV,self.width,self.lengthRatio,self.joint)
-            return self.datos
         else:
             cmds.warning('YA EXISTE '+ self.name +' CON ESE NOMBRE.')
             self.result =cmds.promptDialog(title='DESEA PONER OTRO NOMBRE?',message='Enter name:',
@@ -246,15 +242,15 @@ class RigSpine():#Creacion de una spina con nurbsPlane
             if self.result  == 'Y':
                 self.newName=cmds.promptDialog(query=True, text=True)
                 self.datos=self.nurbCreation(str(self.newName),self.directionAxi,self.splitU,self.splitV,self.width,self.lengthRatio,self.joint)
-                return self.datos
             else:
                 None
+        return self.datos
 
     def createDeformer(self,tipo='wave'):
         #Creo los deformadores con su conexion y los deformadores
         self.deformers=self.createDeformsBlendShape(self.datos[0],cmds.listRelatives(self.datos[5])[0],tipo)
         #Creo un grupo para los deformadores
-        self.gDef=self.grupoDe(self.deformers[0:2],self.name+'_Deformers',inherits=False,vis=False)
+        self.gDef=self.grupoDe(self.deformers[0:1],self.name+'_Deformers',inherits=False,vis=False)
         #Neto el nuevo deformador al grupo master
         cmds.parent(self.gDef,self.gMaster)
 
