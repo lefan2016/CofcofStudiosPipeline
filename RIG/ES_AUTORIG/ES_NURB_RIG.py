@@ -88,22 +88,27 @@ class RigSpine():#Creacion de una spina con nurbsPlane
                 else:
                     cmds.warning( 'El ' + obj + ' ya contienen atributos con el nombre ' + str( nV ) )
 
-    def createCopyAndBlendShape(self,obj,descrip='_FORWAVE',suf='_NBS'):#crea el duplicado y luego lo adiere al original mediante un blendshape
-        if not cmds.objExists(obj+descrip+suf):
+    def createCopyAndBlendShape(self, obj, descrip= '_FORWAVE', suf= '_NBS' ):#crea el duplicado y luego lo adiere al original mediante un blendshape
+        if not cmds.objExists( str(obj) + descrip ):
             #Coloco el objeto a copiar en el origen
-            bindPose=cmds.dagPose(obj,q=True,bindPose=True)[0]
-            cmds.dagPose( bindPose, restore=True)
+            bindPose = cmds.dagPose( obj, q= True, bindPose= True )[0]
+            cmds.dagPose( bindPose, restore= True )
             #Duplica el objeto para trabajarlo
-            copy = cmds.duplicate(obj,n=obj+descrip)[0]
-            obj=str(obj)
+            copy = cmds.duplicate( obj, n= obj + descrip )[0]
+            nbs=str(obj)+suf
             #Crea blendshape si no existe lo agrega
-            if not cmds.objExists(obj+suf):
-                nbs=cmds.blendShape([copy,obj],n=obj+suf)[0]
+            if cmds.objExists( str(obj) + suf ):
+                try:
+                    waithBsh=cmds.blendShape( obj + suf, q=True, wc=True)
+                    nbs = cmds.blendShape (obj+suf, edit=True, target=[ obj, waithBsh+1, str(copy), 1.0 ])[0]
+                except:
+                    pass
             else:
-                nbs=cmds.blendShape(geometry=copy,target=str(obj)+suf)[0]
+                nbs = cmds.blendShape( [ copy, obj ], n=obj + suf )[0]
+            print 'Se creo correctamente el blendshape '+ obj+suf + 'con '+ copy
             return copy,nbs
         else:
-            cmds.warning('Ya existe el deformador ' + str(obj) + descrip + suf )
+            cmds.warning( 'Ya existe el deformador ' + obj + descrip )
 
     def createDeformsBlendShape(self,obj=None, control=None, tipoDeform='wave'):
         if tipoDeform=='wave':
@@ -118,6 +123,7 @@ class RigSpine():#Creacion de una spina con nurbsPlane
                 nnl = cmds.rename(deform[1],copy+'_NLW')
                 ndf = cmds.rename(deform[0],copy+'_NWV')
                 cmds.setAttr(str(nnl)+'.tz',-dist)
+                cmds.setAttr(str(nnl)+'.visibility',False)
                 #Creo los atributos en el control deseado
                 if control!=None:
                     nVale=['waveOnOff','offset','amplitude','wavelength']
@@ -156,6 +162,7 @@ class RigSpine():#Creacion de una spina con nurbsPlane
                 cmds.setAttr(str(nnl)+'.sx',5)
                 cmds.setAttr(str(nnl)+'.sy',5)
                 cmds.setAttr(str(nnl)+'.sz',5)
+                cmds.setAttr(str(nnl)+'.visibility',False)
                 #Add atributos
                 if control!=None:
                     nVale=['bendOnOff','curvature','lowBound','highBound']
@@ -250,9 +257,13 @@ class RigSpine():#Creacion de una spina con nurbsPlane
         #Creo los deformadores con su conexion y los deformadores
         self.deformers=self.createDeformsBlendShape(self.datos[0],cmds.listRelatives(self.datos[5])[0],tipo)
         #Creo un grupo para los deformadores
-        self.gDef=self.grupoDe(self.deformers[0:1],self.name+'_Deformers',inherits=False,vis=False)
-        #Neto el nuevo deformador al grupo master
-        cmds.parent(self.gDef,self.gMaster)
+        if cmds.objExists(self.name+'_Deformers_GRP'):
+            #Emparento el deformador al grupo existente
+            cmds.parent(self.deformers[0:1],self.name+'_Deformers_GRP')
+        else:
+            self.gDef=self.grupoDe(self.deformers[0:1],self.name+'_Deformers',inherits=False,vis=False)
+            #Neto el nuevo deformador al grupo master
+            cmds.parent(self.gDef,self.gMaster)
 
 class winAR(RigSpine):
     def __init__():
