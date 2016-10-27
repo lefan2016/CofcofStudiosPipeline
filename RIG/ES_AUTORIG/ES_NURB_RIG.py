@@ -80,6 +80,14 @@ class RigSpine():#Creacion de una spina con nurbsPlane
             grpYcnt.append(ztr)
         return grpYcnt
 
+    def existNode(self,obj,type='skinCluster'):
+        for x in cmds.listRelatives(obj):
+            x=cmds.listConnections(x,t=type)
+            if cmds.nodeType(x)=='skinCluster':
+                return True
+            else:
+                return False
+
     def createAttr(self, objs=[], Attrs=[], min=0, max=1.0, defa=0 ):
         for obj in [objs]:
             for nV in [Attrs]:
@@ -88,11 +96,12 @@ class RigSpine():#Creacion de una spina con nurbsPlane
                 else:
                     cmds.warning( 'El ' + obj + ' ya contienen atributos con el nombre ' + str( nV ) )
 
-    def createCopyAndBlendShape(self, obj, descrip= '_FORWAVE', suf= '_NBS' ):#crea el duplicado y luego lo adiere al original mediante un blendshape
+    def createCopyAndBlendShape(self, obj, descrip= '_FORDEFORMER', suf= '_NBS' ):#crea el duplicado y luego lo adiere al original mediante un blendshape
         if not cmds.objExists( str(obj) + descrip ):
-            #Coloco el objeto a copiar en el origen
-            bindPose = cmds.dagPose( obj, q= True, bindPose= True )[0]
-            cmds.dagPose( bindPose, restore= True )
+            if self.existNode(obj,'skinCluster'):#Solo si tiene un skin hace el bindPose
+                #Coloco el objeto a copiar en el origen
+                bindPose = cmds.dagPose( str(obj), q= True, bindPose= True )[0]
+                cmds.dagPose( bindPose, restore= True )
             #Duplica el objeto para trabajarlo
             copy = cmds.duplicate( obj, n= obj + descrip )[0]
             nbs=str(obj)+suf
@@ -111,6 +120,7 @@ class RigSpine():#Creacion de una spina con nurbsPlane
             cmds.warning( 'Ya existe el deformador ' + obj + descrip )
 
     def createDeformsBlendShape(self,obj=None, control=None, tipoDeform='wave'):
+        #objeto que duplicara para el deformador nuevo y el control donde iran los paramatro luego el nombre del deformador.
         if tipoDeform=='wave':
             descripcion='_FORWAVE'
             if not cmds.objExists(obj+descripcion):
@@ -139,11 +149,11 @@ class RigSpine():#Creacion de una spina con nurbsPlane
                         cmds.expression(o=control,s=str(ndf)+"."+nVale[3]+"="+str(control)+"."+ nVale[3] +";", n=obj+descripcion+'_EXP')
                     except RuntimeError:
                         pass
-                else:
-                    print 'FALTA ESPECIFICAR EL CONTROL DONDE IRAN SUS ATRIBUTOS'
+                return copy,nnl,ndf,nbs
             else:
-                print 'YA EXISTE ESE DEFORMADOR ' +tipoDeform +' LLAMADO : '+ obj + descripcion
-            return copy,nnl,ndf,nbs
+                print 'FALTA ESPECIFICAR EL CONTROL DONDE IRAN SUS ATRIBUTOS'
+        else:
+            print 'YA EXISTE ESE DEFORMADOR ' +tipoDeform +' LLAMADO : '+ obj + '_FORWAVE'
 
         if tipoDeform=='bend':
             descripcion='_FORBEND'
@@ -178,11 +188,12 @@ class RigSpine():#Creacion de una spina con nurbsPlane
                         cmds.expression(o=control,s=str(ndf)+"."+nVale[3]+"="+str(control)+"."+ nVale[3] +";", n=obj+descripcion+'_EXP')
                     except RuntimeError:
                         pass
-                else:
-                    print 'FALTA ESPECIFICAR EL CONTROL DONDE IRAN SUS ATRIBUTOS'
+                return copy,nnl,ndf,nbs
             else:
-                print 'YA EXISTE ESE DEFORMADOR ' +tipoDeform +' LLAMADO : '+ obj + descripcion
-            return copy,nnl,ndf,nbs
+                print 'FALTA ESPECIFICAR EL CONTROL DONDE IRAN SUS ATRIBUTOS'
+        else:
+            print 'YA EXISTE ESE DEFORMADOR ' +tipoDeform +' LLAMADO : '+ obj + '_FORBEND'
+
 
     def nurbCreation(self,name,directionAxi=[0,1,0],splitU=1,splitV=5,width=0.1,lengthRatio=0.5,jnt=2):
         joints=[]
@@ -259,9 +270,9 @@ class RigSpine():#Creacion de una spina con nurbsPlane
         #Creo un grupo para los deformadores
         if cmds.objExists(self.name+'_Deformers_GRP'):
             #Emparento el deformador al grupo existente
-            cmds.parent(self.deformers[0:1],self.name+'_Deformers_GRP')
+            cmds.parent(self.deformers[0:2],self.name+'_Deformers_GRP')
         else:
-            self.gDef=self.grupoDe(self.deformers[0:1],self.name+'_Deformers',inherits=False,vis=False)
+            self.gDef=self.grupoDe(self.deformers[0:2],self.name+'_Deformers',inherits=False,vis=False)
             #Neto el nuevo deformador al grupo master
             cmds.parent(self.gDef,self.gMaster)
 
