@@ -88,13 +88,13 @@ class RigSpine():#Creacion de una spina con nurbsPlane
             else:
                 return False
 
-    def createAttr(self, objs=[], Attrs=[], min=0, max=1.0, defa=0 ):
+    def createAttr(self, objs=[], Attrs=[],niceName='',min=0, max=1.0, defa=0,ocultar=False,**kwargs ):
         for obj in [objs]:
             for nV in [Attrs]:
                 if not cmds.attributeQuery( nV, n=obj ,exists=True ):
-                    cmds.addAttr( obj, sn=str( nV ), ln=str( nV ), dv=defa, minValue=min, maxValue=max, k=1 )
-                else:
-                    cmds.warning( 'El ' + obj + ' ya contienen atributos con el nombre ' + str( nV ) )
+                    cmds.addAttr( obj, ln=str( nV ),nn=niceName, dv=defa, minValue=min, maxValue=max, k=1,**kwargs )
+                if ocultar:
+                    cmds.setAttr(obj+'.'+nV, lock=True)
 
     def createCopyAndBlendShape(self, obj, descrip= '_FORDEFORMER', suf= '_NBS' ):#crea el duplicado y luego lo adiere al original mediante un blendshape
         if not cmds.objExists( str(obj) + descrip ):
@@ -114,7 +114,6 @@ class RigSpine():#Creacion de una spina con nurbsPlane
                     pass
             else:
                 nbs = cmds.blendShape( [ copy, obj ], n=obj + suf )[0]
-            print 'Se creo correctamente el blendshape '+ obj+suf + 'con '+ copy
             return copy,nbs
         else:
             cmds.warning( 'Ya existe el deformador ' + obj + descrip )
@@ -123,7 +122,7 @@ class RigSpine():#Creacion de una spina con nurbsPlane
         #objeto que duplicara para el deformador nuevo y el control donde iran los paramatro luego el nombre del deformador.
         if tipoDeform=='wave':
             descripcion='_FORWAVE'
-            if not cmds.objExists(obj+descripcion):
+            if not cmds.objExists(obj+'_FORWAVE'):
                 #Crea blendshape si no existe lo agrega
                 copy,nbs=self.createCopyAndBlendShape(obj,descripcion)
                 #Creo el deformador con las siguientes propiedades
@@ -137,10 +136,11 @@ class RigSpine():#Creacion de una spina con nurbsPlane
                 #Creo los atributos en el control deseado
                 if control!=None:
                     nVale=['waveOnOff','offset','amplitude','wavelength']
-                    self.createAttr( control, nVale[0] ,0 ,1.0 ,0 )
-                    self.createAttr( control, nVale[1] ,0 ,50.0 ,50.0 )
-                    self.createAttr( control, nVale[2] ,0 ,100, 0.5 )
-                    self.createAttr( control, nVale[3] ,0.1 ,10.0 ,1.4 )
+                    self.createAttr( control, tipoDeform ,'---------------',ocultar=True,at="enum",en=tipoDeform.upper())
+                    self.createAttr( control, nVale[0] ,'<-waveOnOff',0 ,1.0 ,0)
+                    self.createAttr( control, nVale[1] ,'<-offset',0 ,50.0 ,50.0 )
+                    self.createAttr( control, nVale[2] ,'<-amplitude',0 ,100, 0.5 )
+                    self.createAttr( control, nVale[3] ,'<-wavelength',0.1 ,10.0 ,1.4 )
                     #Conecto los atributos con el deformador
                     try:
                         cmds.connectAttr(control+'.'+nVale[0], nbs+'.'+copy,f=True)
@@ -152,12 +152,50 @@ class RigSpine():#Creacion de una spina con nurbsPlane
                 return copy,nnl,ndf,nbs
             else:
                 print 'FALTA ESPECIFICAR EL CONTROL DONDE IRAN SUS ATRIBUTOS'
-        else:
-            print 'YA EXISTE ESE DEFORMADOR ' +tipoDeform +' LLAMADO : '+ obj + '_FORWAVE'
+
+        if tipoDeform=='squash':
+            descripcion='_FORSQUASH'
+            if not cmds.objExists(obj+'_FORSQUASH'):
+                #Crea blendshape si no existe lo agrega
+                copy,nbs=self.createCopyAndBlendShape(obj,descripcion)
+                #Creo el deformador con las siguientes propiedades
+                deform = None
+                deform = mel.eval("nonLinear -type squash  -lowBound -1 -highBound 1 -startSmoothness 0 -endSmoothness 0 -maxExpandPos 0.5 -expand 1 -factor 0 "+ str(cmds.listRelatives(copy)[0]) +";")
+                nnl = cmds.rename(deform[1],copy+'_NLW')
+                ndf = cmds.rename(deform[0],copy+'_NWV')
+                cmds.setAttr(str(nnl)+'.rx',-90)
+                cmds.setAttr(str(nnl)+'.visibility',False)
+                #Creo los atributos en el control deseado
+                if control!=None:
+                    nVale=['squashOnOff','factor','expand','maxExpandPos','startSmoothness','endSmoothness','lowBound','highBound']
+                    self.createAttr( control, tipoDeform ,'---------------',ocultar=True,at="enum",en=tipoDeform.upper())
+                    self.createAttr( control, nVale[0] ,'<-squashOnOff',0 ,1,0 )
+                    self.createAttr( control, nVale[1] ,'<-factor',-10.0 ,10.0 ,0 )
+                    self.createAttr( control, nVale[2] ,'<-expand',0 ,10 ,1 )
+                    self.createAttr( control, nVale[3] ,'<-maxExpandPos',0.01 ,0.99, 0.01 )
+                    self.createAttr( control, nVale[4] ,'<-startSmoothness',0 ,1 ,0 )
+                    self.createAttr( control, nVale[5] ,'<-endSmoothness',0 ,1 ,1 )
+                    self.createAttr( control, nVale[6]+tipoDeform ,'<-lowBound',-10 ,0 ,-2.5)
+                    self.createAttr( control, nVale[7]+tipoDeform ,'<-highBound',0 ,10 ,0 )
+                    #Conecto los atributos con el deformador
+                    try:
+                        cmds.connectAttr(control+'.'+nVale[0], nbs+'.'+copy,f=True)
+                        cmds.expression(o=control,s=str(ndf) +"."+ nVale[1] +"="+str(control)+"."+ nVale[0] +";", n=obj+descripcion+'_EXP')
+                        cmds.expression(o=control,s=str(ndf) +"."+ nVale[2] +"="+str(control)+"."+ nVale[1] +";", n=obj+descripcion+'_EXP')
+                        cmds.expression(o=control,s=str(ndf) +"."+ nVale[3] +"="+str(control)+"."+ nVale[2] +";", n=obj+descripcion+'_EXP')
+                        cmds.expression(o=control,s=str(ndf) +"."+ nVale[4] +"="+str(control)+"."+ nVale[3] +";", n=obj+descripcion+'_EXP')
+                        cmds.expression(o=control,s=str(ndf) +"."+ nVale[5] +"="+str(control)+"."+ nVale[4] +";", n=obj+descripcion+'_EXP')
+                        cmds.expression(o=control,s=str(ndf) +"."+ nVale[6]+tipoDeform +"="+str(control)+"."+ nVale[6] +";", n=obj+descripcion+'_EXP')
+                        cmds.expression(o=control,s=str(ndf) +"."+ nVale[7]+tipoDeform +"="+str(control)+"."+ nVale[7] +";", n=obj+descripcion+'_EXP')
+                    except RuntimeError:
+                        pass
+                return copy,nnl,ndf,nbs
+            else:
+                print 'FALTA ESPECIFICAR EL CONTROL DONDE IRAN SUS ATRIBUTOS'
 
         if tipoDeform=='bend':
             descripcion='_FORBEND'
-            if not cmds.objExists(obj+descripcion):
+            if not cmds.objExists(obj+'_FORBEND'):
                 #Crea blendshape si no existe lo agrega
                 copy,nbs=self.createCopyAndBlendShape(obj,descripcion)
                 #Creo el deformador con las siguientes propiedades
@@ -176,23 +214,22 @@ class RigSpine():#Creacion de una spina con nurbsPlane
                 #Add atributos
                 if control!=None:
                     nVale=['bendOnOff','curvature','lowBound','highBound']
-                    self.createAttr( control, nVale[0] ,0 ,1.0 ,0 )
-                    self.createAttr( control, nVale[1] ,-50.0 ,50.0 ,30.0 )
-                    self.createAttr( control, nVale[2] ,-5.0 ,5.0 ,-2.2 )
-                    self.createAttr( control, nVale[3] ,-5.0 ,5.0 ,2.0 )
+                    self.createAttr( control, tipoDeform ,'---------------',ocultar=True,at="enum",en=tipoDeform.upper())
+                    self.createAttr( control, nVale[0] ,'<-bendOnOff',0 ,1.0 ,0 )
+                    self.createAttr( control, nVale[1] ,'<-curvature',-50.0 ,50.0 ,30.0 )
+                    self.createAttr( control, nVale[2]+tipoDeform ,'<-lowBound',-5.0 ,5.0 ,-2.2 )
+                    self.createAttr( control, nVale[3]+tipoDeform ,'<-highBound',-5.0 ,5.0 ,2.0 )
                     #Conecto los atributos con el deformador
                     try:
                         cmds.connectAttr(control+'.'+nVale[0], nbs+'.'+copy,f=True)
                         cmds.expression(o=control,s=str(ndf)+"."+nVale[1]+"="+str(control)+"."+ nVale[1] +";", n=obj+descripcion+'_EXP')
-                        cmds.expression(o=control,s=str(ndf)+"."+nVale[2]+"="+str(control)+"."+ nVale[2] +";", n=obj+descripcion+'_EXP')
-                        cmds.expression(o=control,s=str(ndf)+"."+nVale[3]+"="+str(control)+"."+ nVale[3] +";", n=obj+descripcion+'_EXP')
+                        cmds.expression(o=control,s=str(ndf)+"."+nVale[2]+tipoDeform+"="+str(control)+"."+ nVale[2]+tipoDeform +";", n=obj+descripcion+'_EXP')
+                        cmds.expression(o=control,s=str(ndf)+"."+nVale[3]+tipoDeform+"="+str(control)+"."+ nVale[3]+tipoDeform +";", n=obj+descripcion+'_EXP')
                     except RuntimeError:
                         pass
                 return copy,nnl,ndf,nbs
             else:
                 print 'FALTA ESPECIFICAR EL CONTROL DONDE IRAN SUS ATRIBUTOS'
-        else:
-            print 'YA EXISTE ESE DEFORMADOR ' +tipoDeform +' LLAMADO : '+ obj + '_FORBEND'
 
 
     def nurbCreation(self,name,directionAxi=[0,1,0],splitU=1,splitV=5,width=0.1,lengthRatio=0.5,jnt=2):
@@ -273,7 +310,7 @@ class RigSpine():#Creacion de una spina con nurbsPlane
             cmds.parent(self.deformers[0:2],self.name+'_Deformers_GRP')
         else:
             self.gDef=self.grupoDe(self.deformers[0:2],self.name+'_Deformers',inherits=False,vis=False)
-            #Neto el nuevo deformador al grupo master
+            #Meto el nuevo deformador al grupo master
             cmds.parent(self.gDef,self.gMaster)
 
 class winAR(RigSpine):
