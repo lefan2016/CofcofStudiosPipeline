@@ -185,8 +185,8 @@ class RigSpine():#Creacion de una spina con nurbsPlane
                         cmds.expression(o=control,s=str(ndf) +"."+ nVale[3] +"="+str(control)+"."+ nVale[2] +";", n=obj+descripcion+'_EXP')
                         cmds.expression(o=control,s=str(ndf) +"."+ nVale[4] +"="+str(control)+"."+ nVale[3] +";", n=obj+descripcion+'_EXP')
                         cmds.expression(o=control,s=str(ndf) +"."+ nVale[5] +"="+str(control)+"."+ nVale[4] +";", n=obj+descripcion+'_EXP')
-                        cmds.expression(o=control,s=str(ndf) +"."+ nVale[6]+tipoDeform +"="+str(control)+"."+ nVale[6] +";", n=obj+descripcion+'_EXP')
-                        cmds.expression(o=control,s=str(ndf) +"."+ nVale[7]+tipoDeform +"="+str(control)+"."+ nVale[7] +";", n=obj+descripcion+'_EXP')
+                        cmds.connectAttr(control+'.'+nVale[6]+tipoDeform, nbs+'.'+Vale[6],f=True)
+                        cmds.connectAttr(control+'.'+nVale[7]+tipoDeform, nbs+'.'+nVale[7],f=True)
                     except RuntimeError:
                         pass
                 return copy,nnl,ndf,nbs
