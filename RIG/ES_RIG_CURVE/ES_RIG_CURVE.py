@@ -83,89 +83,71 @@ def extraControl(objs=[], nameSuf='ZTR', nameTrf='TRF', nameCNT='CNT', **kwargs)
 
 
 def creaLocWithJointsInPositionVertexOfCurve(curveActuals=None, step=1, rebuild=False):
-    # curveActuals=['curva_loca_CRV']
-    dialogo = None
-    if rebuild:
-        dialogo = cmds.confirmDialog(title='ES_ENJONIADOR_DE_CURVAS', message='OJO! Te borrara todos los deformadores que tengas.\nRECOMENDACION: Usarlo antes de usar tu curva', button=[
-                                     'Yes', 'No'], defaultButton='Yes', cancelButton='No', dismissString='No')
+    #step=2
+    #curveActuals=['curva_loca_CRV']
     if curveActuals != None:
-        dic = {}
-        locs = []
-        jnts = []
-        cnts = []
+        dic={}
+        locs=[]
+        jnts=[]
+        cnts=[]
         for curveActual in curveActuals:
-            curveActualSHP = cmds.listRelatives(curveActual)[0]
-            if dialogo == 'Yes':
-                curveActualSHP = cmds.rebuildCurve(
-                    curveActualSHP, keepRange=0, ch=1, rpo=1, rt=0, end=1, kcp=1, kep=1, kt=1, s=4, d=3, tol=0.01)[0]
+            curveActualSHP=cmds.listRelatives(curveActual)[0]
             if cmds.nodeType(curveActualSHP) == 'nurbsCurve':
-                curve = curveActualSHP
+                curve=curveActualSHP
             else:
-                curveActualSHP = cmds.listRelatives(curve)[0]
-            cmds.delete(curveActualSHP, ch=1)
+                curveActualSHP=cmds.listRelatives(curve)[0]
+            cmds.delete(curveActualSHP, ch = 1)
             if cmds.nodeType(curveActualSHP) == 'nurbsCurve':
-                newName = curveActualSHP
+                newName=curveActualSHP
                 if '_' in curveActualSHP:
-                    newName = curveActualSHP.split(
-                        curveActualSHP.split('_')[-1])[0]
-                vertexs = cmds.ls(str(curveActualSHP) + '.cv[*]')[0]
-                cantVertex = range(int((vertexs.split(':')[-1])[:-1]) + 1)
-                if step != 1:
-                    start = cantVertex.pop(0)
-                    end = cantVertex.pop(-1)
-                    cantVertex = range(start, end, step)
-                    cantVetex.insert(0, start)
-                    cantVetex.insert(-1, end)
+                    newName=curveActualSHP.split(curveActualSHP.split('_')[-1])[0]
+                vertexs=cmds.ls( str(curveActualSHP)+'.cv[*]' )[0]
+                cantVertex=range(int((vertexs.split(':')[-1])[:-1])+1)
+                if step!=1:
+                    end=cantVertex[-1]
+                    cantVertex=range(0,end,step)
+                    if not end in cantVertex:
+                        cantVertex.insert(-1,end)
                 for vtx in cantVertex:
-                    npC = cmds.createNode(
-                        "nearestPointOnCurve", n=newName + str(vtx) + '_POC')
-                    poCi = cmds.createNode(
-                        "pointOnCurveInfo", n=newName + str(vtx) + '_POCI')
-                    cmds.connectAttr(curveActualSHP +
-                                     ".worldSpace", npC + ".inputCurve", f=1)
-                    cmds.connectAttr(curveActualSHP +
-                                     ".worldSpace", poCi + ".inputCurve", f=1)
-                    cmds.connectAttr(npC + ".parameter",
-                                     poCi + ".parameter", f=1)
-                    wsPos = cmds.getAttr(
-                        curveActualSHP + '.controlPoints[' + str(vtx) + ']')[0]
-                    cmds.setAttr(npC + ".inPosition",
-                                 wsPos[0], wsPos[1], wsPos[2], type="double3")
+                    npC = cmds.createNode("nearestPointOnCurve",n=newName+str(vtx)+'_POC')
+                    poCi = cmds.createNode("pointOnCurveInfo",n=newName+str(vtx)+'_POCI')
+                    cmds.connectAttr(curveActualSHP+".worldSpace", npC + ".inputCurve", f=1)
+                    cmds.connectAttr(curveActualSHP+".worldSpace", poCi + ".inputCurve", f=1)
+                    cmds.connectAttr(npC+".parameter", poCi + ".parameter", f=1)
+                    wsPos=cmds.getAttr(curveActualSHP+'.controlPoints['+str(vtx)+']')[0]
+                    cmds.setAttr(npC + ".inPosition", wsPos[0], wsPos[1], wsPos[2], type="double3")
                     uParam = cmds.getAttr(npC + ".parameter")
                     cmds.delete(npC)
-                    loc = cmds.spaceLocator(n=newName + str(vtx) + '_LOC',)[0]
-                    [cmds.setAttr(loc + '.localScale' + axi, 0.2)
-                     for axi in ['X', 'Y', 'Z']]
-                    cmds.connectAttr(poCi + ".position",
-                                     loc + '.translate', f=1)
-                    jnt = cmds.joint(n=newName + str(vtx) + '_JNT', rad=0.3)
-                    ztr = extraControl([jnt], 'ZTR', 'TRF', 'CNT', radius=0.4)
-                    cmds.parentConstraint(loc, ztr[0], name=str(
-                        ztr[0]) + '_HCNS', maintainOffset=False)
-                    cmds.parentConstraint(ztr[2], jnt, name=str(
-                        ztr[2]) + '_HCNS', maintainOffset=False)
+                    loc=cmds.spaceLocator(n=newName+str(vtx)+'_LOC',)[0]
+                    [cmds.setAttr(loc+'.localScale'+axi,0.2) for axi in ['X','Y','Z']]
+                    cmds.connectAttr(poCi + ".position",loc+'.translate',f=1)
+                    jnt=cmds.joint(n=newName+str(vtx)+'_JNT',rad=0.3)
+                    
+                    ztr=extraControl([jnt],'ZTR','TRF','CNT',radius=0.4)
+                    cmds.parentConstraint( loc,ztr[0],name=str(ztr[0])+'_HCNS', maintainOffset=False)
+                    cmds.parentConstraint( ztr[2],jnt,name=str(ztr[2])+'_HCNS', maintainOffset=False)
                     locs.append(loc)
                     jnts.append(jnt)
                     cnts.append(ztr[0])
 
-                gLocs = cmds.group(locs, name=newName + 'LOCATORS_GRP')
-                gjnts = cmds.group(jnts, name=newName + 'JOINTS_GRP', w=1)
-                gCnts = cmds.group(cnts, name=newName + 'CNTS_GRP', w=1)
+                gLocs=cmds.group(locs,name=newName+'LOCATORS_GRP')
+                gjnts=cmds.group(jnts,name=newName+'JOINTS_GRP',w=1)
+                gCnts=cmds.group(cnts,name=newName+'CNTS_GRP',w=1)
 
-                gNoXform = cmds.group(em=True, name=newName + 'NOXFORM_GRP')
-                cmds.setAttr(gNoXform + '.inheritsTransform', 0)
+                gNoXform=cmds.group(em=True, name=newName+'NOXFORM_GRP')
+                cmds.setAttr(gNoXform+'.inheritsTransform',0)
 
-                cmds.parent(curve, gNoXform)
-                gMaster = cmds.group(em=True, n=newName + 'GRP')
+                cmds.parent(curveActual,gNoXform)
+                gMaster=cmds.group(em=True,n=newName+'GRP')
 
-                cmds.parent([gLocs, gjnts, gCnts, gNoXform], gMaster)
+                cmds.parent([gLocs,gjnts,gCnts,gNoXform],gMaster)
 
                 return [locs, jnts, cnts]
             else:
                 cmds.warning(curveActualSHP + 'No es una curva nurb')
     else:
         cmds.warning('No hay nada en el argumento')
-
+#sdfgsdfg
 
 def crearLowCrvControl(curvesActual=None):
     # curvesActual=cmds.ls(sl=1)
@@ -185,15 +167,20 @@ def crearLowCrvControl(curvesActual=None):
                      newName + " -w " + curve + " " + curveActual + ";")
         else:
             cmds.warning('colocar las curvas')
+    return curve
 
 
 def aimConsecutiveList(listObjects=[], name=''):
     current = 0
     prox = 1
     last = listObjects[-1]
-
-    if listObjects[current] != last:
-        cmds.aimConstraint(listObjects[current], listObjects[prox], aimVector=[
-                           0, 0, 1], upVector=[0, 1, 0], n=str(o) + '_ACNS')
-        current += 1
-        prox += 1
+    #constraint el primer objeto
+    cmds.aimConstraint(listObjects[prox], listObjects[current], aimVector=[
+                    0, 0, 1], upVector=[0, 1, 0], n=str(prox) + '_ACNS')
+    #constraint en todos los siguientes objetos
+    for o in listObjects:
+        if listObjects[current] != last:
+            cmds.aimConstraint(listObjects[current], listObjects[prox], aimVector=[
+                            0, 0, 1], upVector=[0, 1, 0], n=str(o) + '_ACNS')
+            current += 1
+            prox += 1
