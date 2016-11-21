@@ -5,6 +5,20 @@ from maya import cmds, OpenMaya, mel
 
 
 def edgeLoopCrv(meshEdgeList, rebuild=False, rebuildSpans=0, form=2, keepHistory=True, prefix=''):
+    '''
+    INPUT:
+    meshEdgeList (TIPO: string, DESCROPCION: edges seleccionados)
+    rebuild (TIPO: bool, DESCROPCION: rebuild de la curva)
+    rebuildSpans (TIPO: int, DESCROPCION: rebuild cantidad de spans)
+    form (TIPO: int, DESCROPCION: cantidad de suavisado)
+    keepHistory (TIPO: bool, DESCROPCION: keepHistory colapce)
+    prefix (TIPO: string, DESCROPCION: nombre de la curva )
+    OUPUT:
+    curve (TIPO: string, DESCROPCION: nombre de la curva )
+    ''''
+    # Nombro igual al objeto
+    if prefix=='': prefix =  str(cmds.ls(meshEdgeList,o=True))
+    #obtengo los edge seleccionados
     meshEdgeList = cmds.ls(meshEdgeList, fl=True)
     rebuldSpans = len(meshEdgeList)
     # Convert edge selection to nurbs curve
@@ -147,7 +161,6 @@ def creaLocWithJointsInPositionVertexOfCurve(curveActuals=None, step=1, rebuild=
                 cmds.warning(curveActualSHP + 'No es una curva nurb')
     else:
         cmds.warning('No hay nada en el argumento')
-#sdfgsdfg
 
 def crearLowCrvControl(curvesActual=None):
     # curvesActual=cmds.ls(sl=1)
