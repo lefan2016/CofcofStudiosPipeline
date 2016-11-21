@@ -1,13 +1,13 @@
+
 import pymel.core as pm
 import re
 import sets
 from maya import cmds, OpenMaya, mel
 
-
 def edgeLoopCrv(meshEdgeList, rebuild=False, rebuildSpans=0, form=2, keepHistory=True, prefix=''):
     '''
     INPUT:
-    meshEdgeList (TIPO: string, DESCROPCION: edges seleccionados)
+    meshEdgeList (TIPO: list, DESCROPCION: edges seleccionados)
     rebuild (TIPO: bool, DESCROPCION: rebuild de la curva)
     rebuildSpans (TIPO: int, DESCROPCION: rebuild cantidad de spans)
     form (TIPO: int, DESCROPCION: cantidad de suavisado)
@@ -15,9 +15,9 @@ def edgeLoopCrv(meshEdgeList, rebuild=False, rebuildSpans=0, form=2, keepHistory
     prefix (TIPO: string, DESCROPCION: nombre de la curva )
     OUPUT:
     curve (TIPO: string, DESCROPCION: nombre de la curva )
-    ''''
+    '''
     # Nombro igual al objeto
-    if prefix=='': prefix =  str(cmds.ls(meshEdgeList,o=True))
+    if prefix=='': prefix =  str(meshEdgeList[0]).split('.')[0]
     #obtengo los edge seleccionados
     meshEdgeList = cmds.ls(meshEdgeList, fl=True)
     rebuldSpans = len(meshEdgeList)
@@ -36,8 +36,6 @@ def edgeLoopCrv(meshEdgeList, rebuild=False, rebuildSpans=0, form=2, keepHistory
     return curve
 
 # GENERAL FUNCTION: CREATE A NONLINEAR DEFORMER
-
-
 def nonlinearDeformer(objects=[], defType=None, lowBound=-1, highBound=1, translate=None, rotate=None, name='nonLinear'):
     # If something went wrong or the type is not valid, raise exception
     if not objects or defType not in ['bend', 'flare', 'sine', 'squash', 'twist', 'wave']:
@@ -63,7 +61,6 @@ def extraControl(objs=[], nameSuf='ZTR', nameTrf='TRF', nameCNT='CNT', **kwargs)
     # objs=cmds.ls(sl=1)
     grpYcnt = []
     for obj in objs:
-        print obj
         if '|' in obj:
             obj = obj.split('|')[-1]
         if '_' in obj:
@@ -162,7 +159,7 @@ def creaLocWithJointsInPositionVertexOfCurve(curveActuals=None, step=1, rebuild=
     else:
         cmds.warning('No hay nada en el argumento')
 
-def crearLowCrvControl(curvesActual=None):
+def crearLowCrvControl(curvesActual=None, cnt=True):
     # curvesActual=cmds.ls(sl=1)
     for curveActual in curvesActual:
         newName = curveActual
@@ -173,20 +170,38 @@ def crearLowCrvControl(curvesActual=None):
                 str(curveActual), name=newName + 'CRVLOW', rr=1)[0]
             '''if not cmds.getAttr(curve+'.minMaxValue')[0] == (0.0, 1.0):'''
             curve = cmds.rebuildCurve(
-                curve, keepRange=0, ch=1, rpo=1, rt=0, end=1, kcp=0, kep=1, kt=0, s=3, d=3, tol=0.01)[0]
+                curve, keepRange=0, ch=1, rpo=1, rt=0, end=0, kcp=0, kep=1, kt=0, s=3, d=3, tol=0.01)[0]
             #cmds.delete(curve, ch = 1)
-            newName = str(newName + 'WIRE')
             mel.eval("wire -gw true -en 1.000000 -ce 0.000000 -li 0.000000 -dds 0 100 -name " +
-                     newName + " -w " + curve + " " + curveActual + ";")
+                     newName + 'WIRE' + " -w " + curve + " " + curveActual + ";")
         else:
             cmds.warning('colocar las curvas')
-    return curve
+        if cnt:
+            #creo cluster and rename that
+            topCLR=cmds.cluster( str(curve)+'.cv[0:2]')[1]
+            topCLR=cmds.rename(topCLR,newName+'TOP_CLR')
+
+            midCLR=cmds.cluster( str(curve)+'.cv[2:3]' )[1]
+            midCLR=cmds.rename(midCLR,newName+'MID_CLR')
+
+            endCLR=cmds.cluster( str(curve)+'.cv[3:5]' )[1]
+            endCLR=cmds.rename(endCLR,newName+'BOT_CLR')
+            #change pivot to start vertex
+            p1=cmds.xform(str(curve)+'.cv[0]',q=1,t=1,ws=1)
+            cmds.xform(str(topCLR),piv=p1,ws=1)
+            
+            p2=cmds.xform(str(curve)+'.cv[5]',q=1,t=1,ws=1)
+            cmds.xform(str(endCLR),piv=p2,ws=1)
+
+    return curve,topCLR,midCLR,endCLR
 
 
 def aimConsecutiveList(listObjects=[], name=''):
     current = 0
     prox = 1
     last = listObjects[-1]
+    if name != '':  name=cmds.ls(sl=1,o=True)
+        if '_' in name: name = name.split(name.split('_')[-1])[0]
     #constraint el primer objeto
     cmds.aimConstraint(listObjects[prox], listObjects[current], aimVector=[
                     0, 0, 1], upVector=[0, 1, 0], n=str(prox) + '_ACNS')
@@ -197,3 +212,6 @@ def aimConsecutiveList(listObjects=[], name=''):
                             0, 0, 1], upVector=[0, 1, 0], n=str(o) + '_ACNS')
             current += 1
             prox += 1
+
+def midPointV3(p1=(),p2=()):
+    return (( p1[0] + p2[0] ) / 2) , (( p1[1] + p2[1] ) / 2),(( p1[2] + p2[2] ) / 2)
