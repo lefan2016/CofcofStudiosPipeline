@@ -1,4 +1,4 @@
-import maya.cmds
+import maya.cmds as cmds
 
 def addAttrString(objs=None,attrName=''):
     for obj in objs:

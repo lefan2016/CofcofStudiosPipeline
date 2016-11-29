@@ -1,5 +1,5 @@
 import maya.cmds as cmds
-def createRamdomRotationInSpace( CNT=None,targets=None,nameNode='L_TENTACLE_' ):
+def createRamdomRotationInSpace( CNT=None,targets=None,nameNode='RAMDOMSIN_' ):
 
     if not cmds.attributeQuery( nameNode+'AMPLITUDE', n=CNT ,exists=True ):
         cmds.addAttr(CNT , shortName=nameNode+'AMPLITUDE', longName=nameNode+'AMPLITUDE', defaultValue=0, k=True)
@@ -9,12 +9,20 @@ def createRamdomRotationInSpace( CNT=None,targets=None,nameNode='L_TENTACLE_' ):
         cmds.addAttr(CNT , shortName=nameNode+'FRECUENCY_Y', longName=nameNode+'FRECUENCY_Y', defaultValue=0.8, k=True)
     if not cmds.attributeQuery( nameNode+'FRECUENCY_Z', n=CNT ,exists=True ):
         cmds.addAttr(CNT , shortName=nameNode+'FRECUENCY_Z', longName=nameNode+'FRECUENCY_Z', defaultValue=-0.5, k=True)
+    if not cmds.attributeQuery( nameNode+'TIME_OFFSET_X', n=CNT ,exists=True ):
+        cmds.addAttr(CNT , shortName=nameNode+'TIME_OFFSET_X', longName=nameNode+'TIME_OFFSET_X', defaultValue=0.0, k=True)
+    if not cmds.attributeQuery( nameNode+'TIME_OFFSET_Y', n=CNT ,exists=True ):
+        cmds.addAttr(CNT , shortName=nameNode+'TIME_OFFSET_Y', longName=nameNode+'TIME_OFFSET_Y', defaultValue=0.0, k=True)
+    if not cmds.attributeQuery( nameNode+'TIME_OFFSET_Z', n=CNT ,exists=True ):
+        cmds.addAttr(CNT , shortName=nameNode+'TIME_OFFSET_Z', longName=nameNode+'TIME_OFFSET_Z', defaultValue=0.0, k=True)
 
-    cmds.expression( s= str(targets)+".rx = sin( time*"+str(CNT)+'.'+nameNode+'FRECUENCY_X'+" )*"+str(CNT)+'.'+nameNode+'AMPLITUDE'+";\n"+
-                        str(targets)+".ry = sin( time*"+str(CNT)+'.'+nameNode+'FRECUENCY_Y'+" )*"+str(CNT)+'.'+nameNode+'AMPLITUDE'+";\n"
-                        +str(targets)+".rz = sin( time*"+str(CNT)+'.'+nameNode+'FRECUENCY_Z'+" )*"+str(CNT)+'.'+nameNode+'AMPLITUDE'+";",n=nameNode+'RAMDOM_EXP')
 
-createRamdomRotationInSpace('L_SNAIL_TENTACLE_controls_CNT','L_SNAIL_TENTACLE_controls_TRF2','L_TENTACLE_')
+    cmds.expression( s= str(targets)+".rx = sin( time*"+str(CNT)+'.'+nameNode+'FRECUENCY_X+'+str(CNT)+'.'+nameNode+'TIME_OFFSET_X' +")*"+str(CNT)+'.'+nameNode+'AMPLITUDE'+";\n"+
+                        str(targets)+".ry = sin( time*"+str(CNT)+'.'+nameNode+'FRECUENCY_Y+'+str(CNT)+'.'+nameNode+'TIME_OFFSET_Y' +")*"+str(CNT)+'.'+nameNode+'AMPLITUDE'+";\n"+
+                        str(targets)+".rz = sin( time*"+str(CNT)+'.'+nameNode+'FRECUENCY_Z+'+str(CNT)+'.'+nameNode+'TIME_OFFSET_Z' +")*"+str(CNT)+'.'+nameNode+'AMPLITUDE'+";",
+                        n=nameNode+'RAMDOM_EXP')
+
+#createRamdomRotationInSpace('L_SNAIL_TENTACLE_controls_CNT','L_SNAIL_TENTACLE_controls_TRF2','L_TENTACLE_')
 def createJointIkInOrderOne(sufJoint='JIK'):
     sel=cmds.ls(sl=1)
     if len(sel)>=3:
@@ -111,11 +119,11 @@ def ikfkStretch(JNTS=[],LOCS=[]):
     CDN=str(cmds.shadingNode("condition", asUtility=True, n='HAND_STRETCH_CDN'))
     cmds.connectAttr(disDim+'.distance', CDN+'.firstTerm')
 
-JNTS=createJointIkInOrderOne()
-LOCS=createLocatorsInOrder()
+#JNTS=createJointIkInOrderOne()
+#LOCS=createLocatorsInOrder()
 
-JNTS2=createJointIkInOrderOne()
-LOCS2=createLocatorsInOrder()
+#JNTS2=createJointIkInOrderOne()
+#LOCS2=createLocatorsInOrder()
 
-ikfkStretch(JNTS,LOCS)
-ikfkStretch(JNTS2,LOCS2)
+#ikfkStretch(JNTS,LOCS)
+#ikfkStretch(JNTS2,LOCS2)
