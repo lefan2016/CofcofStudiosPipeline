@@ -6,6 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
+    <width>299</width>
     <height>300</height>
    </rect>
   </property>
@@ -34,6 +35,7 @@
     <rect>
      <x>20</x>
      <y>60</y>
+     <width>261</width>
      <height>16</height>
     </rect>
    </property>
@@ -80,15 +82,37 @@
     <string>BAKE</string>
    </property>
   </widget>
+  <widget class="QTextEdit" name="textEdit">
    <property name="geometry">
     <rect>
+     <x>90</x>
+     <y>20</y>
+     <width>181</width>
+     <height>31</height>
     </rect>
    </property>
   </widget>
+  <widget class="QLabel" name="label1">
    <property name="geometry">
     <rect>
+     <x>10</x>
+     <y>30</y>
+     <width>71</width>
+     <height>16</height>
     </rect>
    </property>
+   <property name="text">
+    <string>NOMBRE RIG</string>
+   </property>
+  </widget>
+  <widget class="QListView" name="listView">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>131</y>
+     <width>251</width>
+     <height>121</height>
+    </rect>
    </property>
   </widget>
  </widget>
