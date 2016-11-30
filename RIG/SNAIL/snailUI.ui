@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>CREATE_RIG_EXPORT</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>Z:/ESPIRAL_STUDIOS/SNAIL/MISC/TOOLS/INSTALADOR/WizardSmallBitmapImage.bmp</normaloff>Z:/ESPIRAL_STUDIOS/SNAIL/MISC/TOOLS/INSTALADOR/WizardSmallBitmapImage.bmp</iconset>
+  </property>
+  <widget class="QPushButton" name="copyRigBt">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>260</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>COPY RIG</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label2">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>60</y>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>SELECCIONA EL GRUPO QUE CONTIENE LOS MESH</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="agregarBt">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>80</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>AGREGAR</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label3">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>110</y>
+     <width>31</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>MESH:</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="bakeBt">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>260</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>BAKE</string>
+   </property>
+  </widget>
+   <property name="geometry">
+    <rect>
+    </rect>
+   </property>
+  </widget>
+   <property name="geometry">
+    <rect>
+    </rect>
+   </property>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

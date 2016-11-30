@@ -316,7 +316,7 @@ class RigSpine():#Creacion de una spina con nurbsPlane
 class winAR(RigSpine):
     def __init__():
 
-        self.dir=r'P:/LOCAL/ES_SCRIPTS/RIG/ES_AUTORIG/'
+        self.dir=r'P:/LOCAL/ES_SCRIPTS/RIG/'
         self.fileui='autoRigUI.ui'
         #utl.compilarPySideUI(dir,fire)
         self.uiFile=self.dir+self.fileui
