@@ -17,25 +17,49 @@ class snailUI():
         self.uiFile=self.dir+self.fileui
         loader = QtUiTools.QUiLoader()
         #loader.registerCustomWidget(snailTools)
-        self.rwin = loader.load(self.uiFile)
+        self.UI = loader.load(self.uiFile)
 
         #VARIABLES RIG
-        self.nombreRig=''
-
-        #USO DE FUNCIONES
-        self.rwin.agregarBt.clicked.connect(self.setMesh())
-        self.rwin.copyRigBt.clicked.connect(self.createRig())
+        nombreRig='snail'
+        seleccion=cmds.ls(sl=1)
+        if seleccion==None:
+            cmds.warning('Nada seleccionado.')
+        #SET DE FUNCIONES
+        self.UI.agregarBt.clicked.connect(lambda: self.setMesh(seleccion))
+        self.UI.copyRigBt.clicked.connect(self.createRig)
+        #SET DE OTRAS OPCIONES
+        self.UI.textEdit.setText(nombreRig.upper())
 
         #UI SHOW
-        self.rwin.show()
+        self.UI.show()
 
-    def setMesh(self):
-        self.seleccion=cmds.ls(sl=1)
-        self.selectGeo=[]
-        selectGeo=cmds.listRelatives(self.seleccion ,children=True,fullPath=True)
-        for obj in selectGeo:
-            self.rwin.listView.setText(str(obj))
+    def setMesh(self,seleccion=None):
+        if seleccion:
+            self.UI.wLista.clear()#limpio la lista
+            selectGeo = cmds.listRelatives(seleccion, children=True,type='transform' )
+            cant=range(len(selectGeo))
+            for i in cant:
+                #filtro solo los mesh
+                if cmds.nodeType(cmds.listRelatives(selectGeo[i],children=True)[0])=='mesh':
+                    self.UI.wLista.addItem( str(selectGeo[i]) )
+        else:
+            print 'Nada'
+
+    def getList(self):#para una lista de tipo items
+        items =self.UI.wLista.count()
+        selectedItems=[]
+        itemsText=[]
+        for i in range(items):
+            if self.UI.wLista.isItemSelected(self.UI.wLista.item(i))==True:
+                selectedItems.append(self.UI.wLista.item(i).text())
+        for i in range(items):
+            temp= self.UI.wLista.item(i).text()
+            itemsText.append(temp)
+        return selectedItems
 
     def createRig(self):
-        #seleccion=self.rwin.listView.clicked.connect(setMesh)
-        urExport.skeletalCopy(sources=seleccion, rootName=nombreRig, bake=False)
+        selecItems=self.getList()
+        nombreRig=self.UI.textEdit.toPlainText()
+        print selecItems
+        print self.UI.textEdit.toPlainText()
+        #urExport.skeletalCopy(sources=selecItems, rootName=nombreRig, bake=False)
