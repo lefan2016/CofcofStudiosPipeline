@@ -1,66 +1,109 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>exportRig_mainWindow</class>
+ <widget class="QDialog" name="exportRig_mainWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>299</width>
+    <width>300</width>
     <height>300</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>300</width>
+    <height>300</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>300</width>
+    <height>300</height>
+   </size>
+  </property>
+  <property name="font">
+   <font>
+    <weight>75</weight>
+    <bold>true</bold>
+   </font>
+  </property>
   <property name="windowTitle">
-   <string>CREATE_RIG_EXPORT</string>
+   <string>Copy Rig v.1</string>
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>Z:/ESPIRAL_STUDIOS/SNAIL/MISC/TOOLS/INSTALADOR/WizardSmallBitmapImage.bmp</normaloff>Z:/ESPIRAL_STUDIOS/SNAIL/MISC/TOOLS/INSTALADOR/WizardSmallBitmapImage.bmp</iconset>
+    <normaloff>Z:/ESPIRAL_STUDIOS/SNAIL/MISC/TOOLS/DUPLICATE_SKELETOR/icons/iconEs.png</normaloff>Z:/ESPIRAL_STUDIOS/SNAIL/MISC/TOOLS/DUPLICATE_SKELETOR/icons/iconEs.png</iconset>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>false</bool>
+  </property>
+  <property name="modal">
+   <bool>false</bool>
   </property>
   <widget class="QPushButton" name="copyRigBt">
    <property name="geometry">
     <rect>
-     <x>190</x>
-     <y>260</y>
+     <x>200</x>
+     <y>250</y>
+     <width>81</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>Z:/ESPIRAL_STUDIOS/SNAIL/MISC/TOOLS/DUPLICATE_SKELETOR/icons/copy.png</normaloff>Z:/ESPIRAL_STUDIOS/SNAIL/MISC/TOOLS/DUPLICATE_SKELETOR/icons/copy.png</iconset>
+   </property>
+   <property name="iconSize">
+    <size>
      <width>75</width>
-     <height>23</height>
-    </rect>
+     <height>39</height>
+    </size>
    </property>
-   <property name="text">
-    <string>COPY RIG</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label2">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>60</y>
-     <width>261</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>SELECCIONA EL GRUPO QUE CONTIENE LOS MESH</string>
+   <property name="flat">
+    <bool>true</bool>
    </property>
   </widget>
   <widget class="QPushButton" name="agregarBt">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>80</y>
-     <width>75</width>
-     <height>23</height>
+     <x>120</x>
+     <y>250</y>
+     <width>81</width>
+     <height>51</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Agrega A la lista lo seleccionado, siendo transforms y que contengan Mesh dentro.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
    <property name="text">
-    <string>AGREGAR</string>
+    <string/>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>Z:/ESPIRAL_STUDIOS/SNAIL/MISC/TOOLS/DUPLICATE_SKELETOR/icons/add.png</normaloff>Z:/ESPIRAL_STUDIOS/SNAIL/MISC/TOOLS/DUPLICATE_SKELETOR/icons/add.png</iconset>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>75</width>
+     <height>39</height>
+    </size>
+   </property>
+   <property name="flat">
+    <bool>true</bool>
    </property>
   </widget>
   <widget class="QLabel" name="label3">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>110</y>
+     <y>80</y>
      <width>31</width>
      <height>16</height>
     </rect>
@@ -69,34 +112,11 @@
     <string>MESH:</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="bakeBt">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>260</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>BAKE</string>
-   </property>
-  </widget>
-  <widget class="QTextEdit" name="textEdit">
-   <property name="geometry">
-    <rect>
-     <x>90</x>
-     <y>20</y>
-     <width>181</width>
-     <height>31</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QLabel" name="label1">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>30</y>
+     <x>20</x>
+     <y>50</y>
      <width>71</width>
      <height>16</height>
     </rect>
@@ -109,10 +129,13 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>131</y>
-     <width>251</width>
-     <height>121</height>
+     <y>101</y>
+     <width>261</width>
+     <height>151</height>
     </rect>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::NoFocus</enum>
    </property>
    <property name="selectionMode">
     <enum>QAbstractItemView::MultiSelection</enum>
@@ -121,7 +144,90 @@
     <bool>true</bool>
    </property>
   </widget>
+  <widget class="QCheckBox" name="checkBox">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>260</y>
+     <width>91</width>
+     <height>18</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Bake Joints</string>
+   </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="tristate">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="LOGO">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>300</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>300</width>
+     <height>40</height>
+    </size>
+   </property>
+   <property name="whatsThis">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;www.espiralstudios.com&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;ESPIRAL STUDIOS&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>Z:/ESPIRAL_STUDIOS/SNAIL/MISC/TOOLS/DUPLICATE_SKELETOR/icons/logo.png</normaloff>Z:/ESPIRAL_STUDIOS/SNAIL/MISC/TOOLS/DUPLICATE_SKELETOR/icons/logo.png</iconset>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>300</width>
+     <height>40</height>
+    </size>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>50</y>
+     <width>181</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
  </widget>
- <resources/>
+ <tabstops>
+  <tabstop>agregarBt</tabstop>
+  <tabstop>wLista</tabstop>
+  <tabstop>copyRigBt</tabstop>
+  <tabstop>checkBox</tabstop>
+ </tabstops>
+ <resources>
+  <include location="Z:/ESPIRAL_STUDIOS/SNAIL/MISC/TOOLS/DUPLICATE_SKELETOR/recursoExportador.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -28,13 +28,14 @@ class snailUI():
         self.UI.agregarBt.clicked.connect(lambda: self.setMesh(seleccion))
         self.UI.copyRigBt.clicked.connect(self.createRig)
         #SET DE OTRAS OPCIONES
-        self.UI.textEdit.setText(nombreRig.upper())
+        self.UI.lineEdit.setText(nombreRig.upper())
 
         #UI SHOW
         self.UI.show()
 
     def setMesh(self,seleccion=None):
         if seleccion:
+            selectGeo=None
             self.UI.wLista.clear()#limpio la lista
             selectGeo = cmds.listRelatives(seleccion, children=True,type='transform' )
             cant=range(len(selectGeo))
@@ -43,7 +44,7 @@ class snailUI():
                 if cmds.nodeType(cmds.listRelatives(selectGeo[i],children=True)[0])=='mesh':
                     self.UI.wLista.addItem( str(selectGeo[i]) )
         else:
-            print 'Nada'
+            cmds.warning('Nada seleccionado')
 
     def getList(self):#para una lista de tipo items
         items =self.UI.wLista.count()
@@ -58,8 +59,8 @@ class snailUI():
         return selectedItems
 
     def createRig(self):
-        selecItems=self.getList()
-        nombreRig=self.UI.textEdit.toPlainText()
-        print selecItems
-        print self.UI.textEdit.toPlainText()
-        #urExport.skeletalCopy(sources=selecItems, rootName=nombreRig, bake=False)
+        selecItems = self.getList()
+        nombreRig = self.UI.lineEdit.text()
+        bake=self.UI.checkBox.isChecked()
+        #print selecItems,nombreRig,bake
+        urExport.skeletalCopy(sources=selecItems, rootName=nombreRig, bake=bake)
