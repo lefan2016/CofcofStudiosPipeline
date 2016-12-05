@@ -28,6 +28,8 @@ class RigCopyUI():
         self.UI.copyRigBt.clicked.connect(self.createRig)
         #SET DE OTRAS OPCIONES
         self.UI.lineEdit.setText(nombreRig.upper())
+        #ENLISTO AL INICIO LA seleccion
+        self.setList()
         #UI SHOW
         self.UI.show()
 
@@ -53,22 +55,10 @@ class RigCopyUI():
         for i in range(items):
             if self.UI.wLista.isItemSelected(self.UI.wLista.item(i))==True:
                 self.selectedItems.append(self.UI.wLista.item(i).text())
-        '''
-        itemsText=[]
-        for i in range(items):
-            temp= self.UI.wLista.item(i).text()
-            itemsText.append(str(temp))
-        print 'seleccionados '+ str(itemsText)
-        '''
-        #print 'seleccionados '+ str(self.selectedItems)
-
         return self.selectedItems
-
 
     def createRig(self):#Cuando se llama se piden todos los datos
         selecItems = self.getList()
         nombreRig = self.UI.lineEdit.text()
         bake=self.UI.checkBox.isChecked()
-        #print selecItems,nombreRig,bake
-
         urExport.skeletalCopy(sources=selecItems, rootName=nombreRig, bake=bake)
