@@ -31,6 +31,7 @@ def skeletalCopy(sources=[], rootName='', bake=False):
         jntsNews = []
         cnsts = []
         geos = []
+        nTarget=''
 
         if not cmds.objExists(rootName + '_GRP'):
             grp = cmds.group(n=rootName + '_GRP', empty=True)
@@ -43,11 +44,12 @@ def skeletalCopy(sources=[], rootName='', bake=False):
 
         for source in sources:
 
-            nTarget=''
             if '|' in source:
                 nTarget=source.split('|')[-1]
-            if ':' in source or nTarget:
+            elif ':' in source or nTarget:
                 nTarget=source.split(':')[-1]
+            else:
+                nTarget=source
             if cmds.objExists(str(nTarget)+'_MCPY'):
                 target=str(nTarget)+'_MCPY'
                 cmds.warning('Ya existe '+ target)
@@ -58,7 +60,7 @@ def skeletalCopy(sources=[], rootName='', bake=False):
                 cmds.parent(target, grp)
 
             influenceJoints = cmds.skinCluster(source, query=True, influence=True)
-            
+
             for jnt in influenceJoints:
                 mtx = cmds.xform(jnt, q=True, ws=True,m=True)
                 cmds.select(cl=True)
@@ -80,7 +82,7 @@ def skeletalCopy(sources=[], rootName='', bake=False):
                     jntsNews.append(newJnt)
                 if root in jntsNews:
                     jntsNews.remove(root)
-                
+
             for j in jntsNews:
                 padre=cmds.listRelatives(j, parent=True)
                 if not padre:
@@ -107,7 +109,7 @@ def skeletalCopy(sources=[], rootName='', bake=False):
             bakernaitor(jntsNews)
             #cmds.delete(cnsts)
     else:
-        cmds.warning(str(source) + ' Necesita una geometria con skin' ) 
+        cmds.warning(str(source) + ' Necesita una geometria con skin' )
 '''
 #Seleccionar un grupo de geometrias para reconocer todos los mesh
 sel=cmds.ls(sl=1)
