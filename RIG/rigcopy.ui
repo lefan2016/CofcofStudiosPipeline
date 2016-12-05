@@ -47,7 +47,7 @@
   <widget class="QPushButton" name="copyRigBt">
    <property name="geometry">
     <rect>
-     <x>200</x>
+     <x>210</x>
      <y>250</y>
      <width>81</width>
      <height>51</height>
@@ -73,7 +73,7 @@
   <widget class="QPushButton" name="agregarBt">
    <property name="geometry">
     <rect>
-     <x>120</x>
+     <x>130</x>
      <y>250</y>
      <width>81</width>
      <height>51</height>
@@ -102,7 +102,7 @@
   <widget class="QLabel" name="label3">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>80</y>
      <width>31</width>
      <height>16</height>
@@ -115,7 +115,7 @@
   <widget class="QLabel" name="label1">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>50</y>
      <width>71</width>
      <height>16</height>
@@ -128,9 +128,9 @@
   <widget class="QListWidget" name="wLista">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>101</y>
-     <width>261</width>
+     <width>281</width>
      <height>151</height>
     </rect>
    </property>
@@ -150,7 +150,7 @@
    </property>
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>260</y>
      <width>91</width>
      <height>18</height>
@@ -212,11 +212,41 @@
   <widget class="QLineEdit" name="lineEdit">
    <property name="geometry">
     <rect>
-     <x>100</x>
+     <x>90</x>
      <y>50</y>
-     <width>181</width>
+     <width>191</width>
      <height>20</height>
     </rect>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_2">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>280</y>
+     <width>111</width>
+     <height>18</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>Del connections</string>
+   </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="tristate">
+    <bool>false</bool>
    </property>
   </widget>
  </widget>

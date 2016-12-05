@@ -9,6 +9,7 @@ if not path in sys.path:
 	sys.path.append(path)
 import UNREAL_EXPORT_ as urExport
 import UTIL.UTILITYES as utl
+reload(urExport)#Si modifico el archivo ahora si se refleja lo que modifico
 
 class RigCopyUI():
     def __init__(self):
@@ -28,7 +29,7 @@ class RigCopyUI():
         self.UI.copyRigBt.clicked.connect(self.createRig)
         #SET DE OTRAS OPCIONES
         self.UI.lineEdit.setText(nombreRig.upper())
-        #ENLISTO AL INICIO LA seleccion
+        #ENLISTO AL INICIO LA SELECION ACTUAL
         self.setList()
         #UI SHOW
         self.UI.show()
@@ -60,5 +61,6 @@ class RigCopyUI():
     def createRig(self):#Cuando se llama se piden todos los datos
         selecItems = self.getList()
         nombreRig = self.UI.lineEdit.text()
-        bake=self.UI.checkBox.isChecked()
-        urExport.skeletalCopy(sources=selecItems, rootName=nombreRig, bake=bake)
+        bake= self.UI.checkBox.isChecked()
+        cnts= self.UI.checkBox_2.isChecked()
+        urExport.skeletalCopy(sources=selecItems, rootName=nombreRig, bake=bake, deleteCnts=cnts)

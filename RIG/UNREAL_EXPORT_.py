@@ -1,7 +1,7 @@
 import maya.cmds as cmds
 import maya.mel as mel
 #UNREAL EXPORTER GENERIC
-def bakernaitor(objets=[],min=None,max=None):
+def bakernaitor(objets=[],min=None,max=None, nameAnimLayer='NEW_BAKE'):
     if not min:
         min = cmds.playbackOptions(q=True, min=True)
     if not max:
@@ -10,7 +10,10 @@ def bakernaitor(objets=[],min=None,max=None):
     cmds.bakeResults(objets, simulation=True,
                      sampleBy=1,
                      time=(min, max),
+                     oversamplingRate=4,#Sampleo
                      disableImplicitControl=True,
+                     bakeOnOverrideLayer=False,#Se agrega una capa Override
+                     destinationLayer=nameAnimLayer,#Si existe la capa se agrega en ella
                      preserveOutsideKeys=True,
                      sparseAnimCurveBake=True,
                      removeBakedAttributeFromLayer=False,
@@ -25,7 +28,27 @@ def searchSCL(obj):
             node=n
     return node
 
-def skeletalCopy(sources=[], rootName='', bake=False):
+def createLayer(objs=[],layerName=''):
+    if layerName:
+        if cmds.objExists(layerName) and cmds.nodeType(layerName)=='displayLayer':
+            ly=cmds.editDisplayLayerMembers( layerName, objs ) # store my selection into the display layer
+        else:
+            cmds.createDisplayLayer(name=layerName,number=1, empty=True)
+            ly=cmds.editDisplayLayerMembers( layerName, objs )
+        return ly
+
+def createLayerAnim(objs=[],layerName=''):
+        if layerName:
+            if cmds.objExists(layerName) and cmds.nodeType(layerName)=='AnimLayer':
+                cmds.select(objs,r=True)
+                ly=cmds.animLayer( e=True addSelectedObjects=layerName ) # store my selection into the display layer
+            else:
+                cmds.animLayer( name=layerName, override=True )
+                cmds.select(objs,r=True)
+                ly=cmds.animLayer( e=True addSelectedObjects=layerName )
+            return ly
+
+def skeletalCopy(sources=[], rootName='', bake=False,deleteCnts=False):
 
     if sources:
         jntsNews = []
@@ -64,10 +87,10 @@ def skeletalCopy(sources=[], rootName='', bake=False):
             for jnt in influenceJoints:
                 mtx = cmds.xform(jnt, q=True, ws=True,m=True)
                 cmds.select(cl=True)
-                if not cmds.objExists(jnt + '_COPY'):
-                    newJnt = cmds.joint(name=jnt + '_COPY',p=(mtx[:3]), rad=0.5)
-                else:
+                if cmds.objExists(jnt + '_COPY'):
                     newJnt = jnt + '_COPY'
+                else:
+                    newJnt = cmds.joint(name=jnt + '_COPY',p=(mtx[:3]), rad=0.5)
 
                 cmds.select(cl=True)
                 cmds.xform(newJnt, m=mtx)
@@ -83,31 +106,29 @@ def skeletalCopy(sources=[], rootName='', bake=False):
                 if root in jntsNews:
                     jntsNews.remove(root)
 
-            for j in jntsNews:
+            for j in jntsNews:#Me aseguro que estan todos en el root
                 padre=cmds.listRelatives(j, parent=True)
                 if not padre:
                     cmds.parent(j, root)
 
-            '''
-            target = cmds.listRelatives(target, shapes=True, fullPath=True)
-            for t in target:
-                if searchSCL(t):
-                    targetSCL=t'''
+
             if not searchSCL(target):
                 cmds.skinCluster(jntsNews, target, dr=4.5, n=str(target)[:-3] + '_SCL')
-            #cmds.select(source)
-            #cmds.select(target, tgl=True)
-            #cmds.copySkinWeights(sa='closestPoint', ia='closestJoint', noMirror=True)
             cmds.copySkinWeights(ss=str(searchSCL(source)), ds=str(searchSCL(target)), noMirror=True, sa='closestPoint', ia='closestJoint')
-            #mel.eval("copySkinWeights  -ss "+source+" -ds "+str(target)+" -noMirror -surfaceAssociation closestPoint -influenceAssociation closestJoint;")
-            cmds.select(target)
-            mel.eval( 'doPruneSkinClusterWeightsArgList 1 { "' + str(0.2) + '" }')
-            mel.eval('removeUnusedInfluences')
-            cmds.select(cl=True)
+            #cmds.select(target)
+            #mel.eval( 'doPruneSkinClusterWeightsArgList 1 { "' + str(0.2) + '" }')
+            #mel.eval('removeUnusedInfluences')
+            #cmds.select(cl=True)
+
+            #Ordeno todo en un layer
+            createLayer(objs=[target], layerName=rootName+'_LAY')
+            createLayer(objs=jntsNews, layerName=rootName+'_LAY')
 
         if bake:
-            bakernaitor(jntsNews)
-            #cmds.delete(cnsts)
+            createLayerAnim(jntsNews, rootName+'_LAN')
+            bakernaitor(jntsNews,nameAnimLayer=rootName+'_LAN')
+        if deleteCnts:
+            cmds.delete(cnsts)
     else:
         cmds.warning(str(source) + ' Necesita una geometria con skin' )
 '''
