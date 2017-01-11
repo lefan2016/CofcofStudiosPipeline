@@ -72,6 +72,37 @@ def compilarPySideUI(pathUI='', fileUI='', openFolder=False):
     else:
         msg('No se especifico o no esta correcta la ruta o archivo de .ui')
 
+'''
+* DESCRIPCION *
+Alinear y Crear offset
+makeOffsetGrp('L_FOOT_HEEL_CNT','L_FOOT_HEEL_')
+'''
+def Aliniar(object=None,offsetGrp=None):
+    # match object transform
+    cmds.delete( cmds.parentConstraint( object, offsetGrp ) )
+    cmds.delete( cmds.scaleConstraint( object, offsetGrp ) )
+
+def makeOffsetGrp( object, prefix = 'noname' ,control=False,radio=1):
+
+    objectParents = cmds.listRelatives( object, p = 1 )
+    offsetGrp = cmds.group( n = prefix + '_TRF', em = 1 )
+    if objectParents!=None:
+        Aliniar(object,offsetGrp)
+        cmds.parent( offsetGrp, objectParents[0] )
+    if control:
+        cnt=cmds.circle(n=prefix+'_CNT',normal=[1,0,0],r=radio)
+        Aliniar(object,offsetGrp)
+        Aliniar(object,cnt)
+        # parent object under offset cnt
+        cmds.parent(object,object)
+        cmds.parent(cnt, offsetGrp )
+    else:
+        #Alinia al objeto
+        Aliniar(object,offsetGrp)
+        # parent object under offset group
+        cmds.parent( object, offsetGrp )
+    return offsetGrp
+
 
 '''
 * DESCRIPCION *
