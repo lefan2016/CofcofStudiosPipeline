@@ -15,6 +15,20 @@ def edgeLoopCrv(meshEdgeList, rebuild=False, rebuildSpans=0, form=2, keepHistory
     prefix (TIPO: string, DESCROPCION: nombre de la curva )
     OUPUT:
     curve (TIPO: string, DESCROPCION: nombre de la curva )
+    EJEMPLO:
+    Crear curva segun edge con joints
+    tambien podras aderir algun modificador.
+
+    seleccion=cmds.ls(sl=1,o=True)
+    seleccionEdge=cmds.ls(sl=1)
+    cosas={}
+    crv=ere.edgeLoopCrv(seleccionEdge)
+    cosas[0]=ere.creaLocWithJointsInPositionVertexOfCurve([crv],step=2)
+    ere.aimConsecutiveList(cosas[0][0],'coco')
+    lowCRV=ere.crearLowCrvControl([crv])
+
+    ere.nonlinearDeformer([lowCRV[0]],'twist',rotate=(0,0,90))
+    ere.nonlinearDeformer([lowCRV[0]],'sine',rotate=(0,0,90))
     '''
     # Nombro igual al objeto
     if prefix=='': prefix =  str(meshEdgeList[0]).split('.')[0]
@@ -133,7 +147,7 @@ def creaLocWithJointsInPositionVertexOfCurve(curveActuals=None, step=1, rebuild=
                     [cmds.setAttr(loc+'.localScale'+axi,0.2) for axi in ['X','Y','Z']]
                     cmds.connectAttr(poCi + ".position",loc+'.translate',f=1)
                     jnt=cmds.joint(n=newName+str(vtx)+'_JNT',rad=0.3)
-                    
+
                     ztr=extraControl([jnt],'ZTR','TRF','CNT',radius=0.4)
                     cmds.parentConstraint( loc,ztr[0],name=str(ztr[0])+'_HCNS', maintainOffset=False)
                     cmds.parentConstraint( ztr[2],jnt,name=str(ztr[2])+'_HCNS', maintainOffset=False)
@@ -189,7 +203,7 @@ def crearLowCrvControl(curvesActual=None, cnt=True):
             #change pivot to start vertex
             p1=cmds.xform(str(curve)+'.cv[0]',q=1,t=1,ws=1)
             cmds.xform(str(topCLR),piv=p1,ws=1)
-            
+
             p2=cmds.xform(str(curve)+'.cv[5]',q=1,t=1,ws=1)
             cmds.xform(str(endCLR),piv=p2,ws=1)
 
