@@ -1,6 +1,14 @@
 import maya.cmds as cmds
 import maya.mel as mel
 #UNREAL EXPORTER GENERIC
+'''#Como usarlo:
+#Seleccionar un grupo de geometrias para reconocer todos los mesh
+sel=cmds.ls(sl=1)
+selectGeo=[]
+selectGeo=cmds.listRelatives(sel ,children=True,fullPath=True)
+skeletalCopy(selectGeo,'SNAIL',False)
+'''
+
 def bakernaitor(objets=[],min=None,max=None, nameAnimLayer='NEW_BAKE'):
     if not min:
         min = cmds.playbackOptions(q=True, min=True)
@@ -36,7 +44,7 @@ def createLayer(objs=[],layerName=''):
             cmds.createDisplayLayer(name=layerName,number=1, empty=True)
             ly=cmds.editDisplayLayerMembers( layerName, objs )
         return ly
-
+'''
 def createLayerAnim(objs=[],layerName=''):
         if layerName:
             if cmds.objExists(layerName) and cmds.nodeType(layerName)=='AnimLayer':
@@ -47,7 +55,7 @@ def createLayerAnim(objs=[],layerName=''):
                 cmds.select(objs,r=True)
                 ly=cmds.animLayer( e=True addSelectedObjects=layerName )
             return ly
-
+'''
 def skeletalCopy(sources=[], rootName='', bake=False,deleteCnts=False):
 
     if sources:
@@ -115,26 +123,19 @@ def skeletalCopy(sources=[], rootName='', bake=False,deleteCnts=False):
             if not searchSCL(target):
                 cmds.skinCluster(jntsNews, target, dr=4.5, n=str(target)[:-3] + '_SCL')
             cmds.copySkinWeights(ss=str(searchSCL(source)), ds=str(searchSCL(target)), noMirror=True, sa='closestPoint', ia='closestJoint')
-            #cmds.select(target)
-            #mel.eval( 'doPruneSkinClusterWeightsArgList 1 { "' + str(0.2) + '" }')
-            #mel.eval('removeUnusedInfluences')
-            #cmds.select(cl=True)
+            cmds.select(target)
+            mel.eval( 'doPruneSkinClusterWeightsArgList 1 { "' + str(0.2) + '" }')
+            mel.eval('removeUnusedInfluences')
+            cmds.select(cl=True)
 
             #Ordeno todo en un layer
             createLayer(objs=[target], layerName=rootName+'_LAY')
             createLayer(objs=jntsNews, layerName=rootName+'_LAY')
 
         if bake:
-            createLayerAnim(jntsNews, rootName+'_LAN')
+            #createLayerAnim(jntsNews, rootName + '_LAN')
             bakernaitor(jntsNews,nameAnimLayer=rootName+'_LAN')
         if deleteCnts:
             cmds.delete(cnsts)
     else:
         cmds.warning(str(source) + ' Necesita una geometria con skin' )
-'''
-#Seleccionar un grupo de geometrias para reconocer todos los mesh
-sel=cmds.ls(sl=1)
-selectGeo=[]
-selectGeo=cmds.listRelatives(sel ,children=True,fullPath=True)
-skeletalCopy(selectGeo,'SNAIL',False)
-'''
