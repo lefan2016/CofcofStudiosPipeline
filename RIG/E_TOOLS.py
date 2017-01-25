@@ -523,19 +523,28 @@ def createClusterInVertex(arg):#Crea un cluster con la seleccion de VERTICES
 	    cls=mc.cluster(v)
 	    s=mc.select(sel)
 	    if '__' in n:
-	        mc.rename(cls[1],str(n).split('__')[0]+str(nV[:-1])+'__CLS')
+	        mc.rename(cls[1],str(n).split('__')[0]+str(nV[:-1])+'_CLS')
 	    else:
-	        mc.rename(cls[1],str(n)+str(nV[:-1])+'__CLS')
+	        mc.rename(cls[1],str(n)+str(nV[:-1])+'_CLS')
 #-----------------------------------------------------------------------------------------------
 def createJointInVertex(arg):#Crea un JOINT con la seleccion de VERTICES
-	crv = mc.ls(sl=1)
+	objs = mc.ls(sl=1)
 	sel=[]
-	for v in crv:
-		pos=mc.pointPosition(v)
-		mc.select(cl=1)
-		jnt=mc.joint(name=v.split('.')[0]+'__JNT',p=pos)
-		sel.append(jnt)
+	if '.vtx[' in objs[0]:
+	    for v in objs:
+	        pos=mc.pointPosition(v)
+	        mc.select(cl=1)
+	        jnt=mc.joint(name=str(o)+'_JNT',p=pos)
+	        sel.append(jnt)
+	else:
+	    for o in objs:
+	        mc.select(cl=1)
+	        jnt=mc.joint(name=str(o)+'_JNT',rad=0.5)
+	        mc.select(cl=1)
+	        mc.delete( mc.parentConstraint( o, jnt ) )
+	        sel.append(jnt)
 	mc.select(sel)
+
 #-----------------------------------------------------------------------------------------------
 #Crea una serie de condiciones para lograr un driven key programable.
 def setDrivenKeyCondition(source='',target='',axiX='x',axiY='y',axiZ='z'):
