@@ -4,7 +4,6 @@ import maya.cmds as mc
 import pymel.core as pm
 import maya.mel as mel
 from pymel.core.runtime import BakeNonDefHistory
-listNodesAlemb=['']
 
 def _startTranfer():
     aNode = str(_selectNode())
@@ -70,42 +69,43 @@ def _selectForceAlembic():
         if BConnection!=0:
             conect=mc.connectAttr(str(BConnection),str(shdGEO)+'.inMesh',force=True)
         else:
-            print 'No se encontro conexion con alembic'
+            print 'No se encontro conexion con exocortexAlembic'
     else:
-        print 'Selecciona primero el mesh shader y luego el mesh alembic.'
+        print 'Selecciona primero el mesh shader y luego el mesh exocortexAlembic.'
 
 def _initGui():
     #lista de camaras en scena
-    NodesAlemb = mc.ls(type='AlembicNode')
+    NodesAlemb = mc.ls(type=['AlembicNode','ExocortexAlembicFile'])
+
     if NodesAlemb==[]:
-        mc.warning('NO EXISTE NINGUN NODO DE ALEMBIC EN ESTE FILE')
+        mc.warning('NO EXISTE NINGUN NODO DE EXOCORTEX ALEMBIC EN ESTE FILE')
     else:
         #ordeno listas
         NodesAlemb.sort()
         for i in NodesAlemb:
-            mc.textScrollList(listNodesAlemb, edit=True, append=i)
-        if len(mc.textScrollList(listNodesAlemb, q=True, allItems=True)):
-            mc.textScrollList(listNodesAlemb, edit=True, selectIndexedItem=1)
+            mc.textScrollList('scroll', edit=True, append=i)
+        if len(mc.textScrollList('scroll', q=True, allItems=True)):
+            mc.textScrollList('scroll', edit=True, selectIndexedItem=1)
 def _selectNode():
 
-    selectNode = mc.textScrollList(listNodesAlemb, q=True, selectItem=True)
+    selectNode = mc.textScrollList('scroll', q=True, selectItem=True)
     return selectNode[0]
 
 def _refreshGui():
     # remove all existing items from the textScrollList, then repopulate it with initGui()
-    mc.textScrollList(listNodesAlemb, edit=True, removeAll=True)
+    mc.textScrollList('scroll', edit=True, removeAll=True)
     _initGui();
 
 def _makeWindow():
 
-    winName='PH_ALEMBICINMESH'
+    winName='ES_EXOCORTEXALEMBICTOMESH'
     version=' v2.0'
     if mc.window(winName, exists=True):
         mc.deleteUI(winName)
     mc.window( winName, title=winName+version, h=200 ,w=200,s=False,resizeToFitChildren=True )
     mc.columnLayout(adjustableColumn = True)
     mc.text('LISTA DE ALEMBIC EN ESCENA',align='center',h=20 )
-    mc.textScrollList(listNodesAlemb, allowMultiSelection=False, selectCommand="PH_ALEMBICINMESH._selectNode()")
+    mc.textScrollList('scroll', allowMultiSelection=False, selectCommand="ES_EXOCORTEXALEMBICTOMESH._selectNode()")
     mc.rowLayout( numberOfColumns=2 )
     mc.text('''
         1) SELECCIONA EL NODO DE ALEMBIC
@@ -114,10 +114,10 @@ def _makeWindow():
         4) ULTIMA OPCION FORCE
         ''',align='left')
     mc.columnLayout(adjustableColumn=True, rowSpacing=5)
-    mc.button( label='REFRESH', command="PH_ALEMBICINMESH._refreshGui()", bgc=(0.4,0.8,0.3))
-    mc.button( label='TRANFER ALEMBIC', command="PH_ALEMBICINMESH._startTranfer()", bgc=(0.3,0.4,0.3))
+    mc.button( label='REFRESH', command="ES_EXOCORTEXALEMBICTOMESH._refreshGui()", bgc=(0.4,0.8,0.3))
+    mc.button( label='TRANFER ALEMBIC', command="ES_EXOCORTEXALEMBICTOMESH._startTranfer()", bgc=(0.3,0.4,0.3))
     mc.rowLayout(numberOfColumns=2 )
-    mc.button( label='FORCE SELECT', command="PH_ALEMBICINMESH._selectForceAlembic()", bgc=(1,0.4,0.3))
+    mc.button( label='FORCE SELECT', command="ES_EXOCORTEXALEMBICTOMESH._selectForceAlembic()", bgc=(1,0.4,0.3))
     mc.showWindow()
     #inicio la lista
     _initGui()
