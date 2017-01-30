@@ -2,7 +2,7 @@ import maya.cmds as cmds
 
 def getShapeNodes(obj):
     howManyShapes = 0
-    getShape = cmds.listRelatives(obj, shapes=True)
+    getShape = cmds.listRelatives(obj,fullPath=True, shapes=True)
     if(getShape == None):
         print 'ERROR:: getShapeNodes : No Shape Nodes Connected to ' + obj + ' /n'
     else:
@@ -17,17 +17,27 @@ def prioritiSGreference(obj=None):
         shapesInSel = getShapeNodes(obj)[0]
     else:
         # saco el shap de la geometria
-        shapesInSel = cmds.ls(dag=1,o=1,s=1,sl=1)
+        shapesInSel = cmds.ls(dag=1,o=1,s=1,sl=1,absoluteName=True)
     #Encuentro el Shading Group del objeto referenciado
     shadingGrps = cmds.listConnections(shapesInSel[0],type='shadingEngine')
-    #Desconecto el initialShadingGroup por defecto
-    try:
-        cmds.disconnectAttr(str(shapesInSel[1])+'.instObjGroups','initialShadingGroup.dagSetMembers',nextAvailable=True)
-    except:
-        pass
+    for shdrs in shadingGrps:
+        if str(shdrs[-1]) == str(1):
+            cmds. error ('Existe el '+str(shdrs)+ ' shadingGroup no contiene nombre UNICO porfavor corregir.')
+    #Si existe initialShadingGroup lo desconecto
+    if 'initialShadingGroup' in shadingGrps:
+        try:
+            cmds.disconnectAttr(str(shapesInSel[0])+'.instObjGroups','initialShadingGroup.dagSetMembers',nextAvailable=True)
+        except:
+            pass
+        try:
+            cmds.disconnectAttr(str(shapesInSel[0])+'.compInstObjGroups[0].compObjectGroups[0]','initialShadingGroup.dagSetMembers',nextAvailable=True)
+        except:
+            pass
+        shadingGrps.pop(shadingGrps.index('initialShadingGroup'))
     #Connecto el shader de la referencia
     try:
-        cmds.connectAttr(str(shapesInSel[1])+'.instObjGroups',str(shadingGrps[0])+'.dagSetMembers',nextAvailable=True)
+        for shders in shadingGrps:
+            cmds.connectAttr(str(shders)+'.instObjGroups',str(shders)+'.dagSetMembers',nextAvailable=True)
     except:
         errores.append(str(shapesInSel[1]))
         pass
