@@ -18,4 +18,4 @@ shapesDestino = cmds.listRelatives(grpDestino,type='mesh',allDescendents=True,fu
 for shapesO in shapesOrigen:
     for shapesD in shapesDestino:
         if shapesO.split('|')[-1] == shapesD.split('|')[-1]:
-            cmds.transferShadingSets(shapesO,)
+            cmds.transferShadingSets(shapesO,shapesD)
