@@ -48,9 +48,7 @@ def prioritiSGreference(obj=None):
 
 geos=cmds.ls(sl=True)
 for geo in geos:
-    errores=[]
     try:
-        errores=prioritiSGreference(geo)
+        prioritiSGreference(geo)
     except:
         pass
-print ('ESTOS OBJETOS NO RESPONDIERON BIEN: \n'+str(errores))
