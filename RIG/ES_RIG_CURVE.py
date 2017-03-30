@@ -195,7 +195,7 @@ def creaLocWithJointsInPositionVertexOfCurve(curveActuals=None, step=1, rebuild=
 	else:
 		cmds.warning('No hay nada en el argumento')
 
-def crearLowCrvControl(curvesActual=None, cnt=True):
+def crearLowCrvControl(curvesActual=None, cnt=True,rad=1):
 	# curvesActual=cmds.ls(sl=1)
 	for curveActual in curvesActual:
 		newName = curveActual
@@ -229,7 +229,7 @@ def crearLowCrvControl(curvesActual=None, cnt=True):
 			p2=cmds.xform(str(curve)+'.cv[5]',q=1,t=1,ws=1)
 			cmds.xform(str(endCLR),piv=p2,ws=1)
 
-			CNTS=extraControl([topCLR,midCLR,endCLR],'ZTR','TRF','CNT',radius=0.4)
+			CNTS=extraControl([topCLR,midCLR,endCLR],'ZTR','TRF','CNT',radius=rad)
 	return curve,topCLR,midCLR,endCLR
 
 
