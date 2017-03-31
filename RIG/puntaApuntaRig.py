@@ -28,8 +28,8 @@ class puntaApunta():
         nombreRig='puntaApuntaRig'
         #SET DE FUNCIONES
         self.UI.startEndBt.clicked.connect(self.crearLocatorsStartEnd)
-        self.UI.locatorsBt.clicked.connect(lambda: self.crearLocsIntermedios)
-        #self.UI.locatorsBt.clicked.connect(self.crearLocsIntermedios)
+        #self.UI.locatorsBt.clicked.connect(lambda: self.crearLocsIntermedios)
+        self.UI.locatorsBt.clicked.connect(self.crearLocsIntermedios)
         self.UI.jointsBt.clicked.connect(self.createJoints)
         #SET DE OTRAS OPCIONES
         self.UI.lineEdit.setText(nombreRig.upper())
@@ -96,13 +96,14 @@ class puntaApunta():
                 locator=cmds.spaceLocator(n=nombreRig+str(i)+'_LOC')
                 cmds.move(finalPoint.x, finalPoint.y, finalPoint.z, locator[0], rpr=True)
                 self.listaLocators.append(locator)
-            self.listaLocators.insert(0, startLocator)
-            self.listaLocators.insert(len(self.listaLocators), endLocator)
+            self.listaLocators.insert(0, self.startLocator)
+            self.listaLocators.insert(len(self.listaLocators), self.endLocator)
         else:
             cmds.warning('No concuerda con start y ends')
         return self.listaLocators
 
     def createJoints(self):
+        print 'joint si'
         jointsList=[]
         if self.listaLocators:
             for loc in range(len(self.listaLocators)):
