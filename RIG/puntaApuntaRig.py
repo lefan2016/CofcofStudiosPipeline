@@ -16,6 +16,7 @@ class puntaApunta():
         self.listaLocators=[]
         self.sLocator=None
         self.eLocator=None
+        self.grp=None
         #UI START
         loader = QtUiTools.QUiLoader()
         currentDir = os.path.dirname(__file__)
@@ -66,17 +67,23 @@ class puntaApunta():
         #Creo los locators y guardo en unas variables los nombres
         self.sLocator=self.startLocator()
         self.eLocator=self.endLocator()
+
+        self.grp=cmds.group(em=True, n=nombreRig + '_GRP')
+        cmds.parent([self.sLocator,self.eLocator],self.grp)
+
         return self.sLocator,self.eLocator
 
     def crearLocsIntermedios(self):
-        locatorslist=[]
         #Cantidad de intermedios
         self.locNumber = self.UI.spinBox.value()
         #Nombre del rig a colocar se toma de la UI
         nombreRig=self.UI.lineEdit.text()
+        self.sLocator=nombreRig+"START"+'_LOC'
+        self.eLocator=nombreRig+"END"+'_LOC'
         # UI Options
         if cmds.objExists(nombreRig+"START"+'_LOC') and cmds.objExists(nombreRig+"END"+'_LOC'):
             print 'funca2'
+            self.listaLocators=[]
             avgDist = 1.0 / (self.locNumber + 1)
             # Start/End points
             startPoint = cmds.xform(self.sLocator, q=True, ws=True, rp=True)
@@ -87,31 +94,38 @@ class puntaApunta():
             mVectorResult = mVectorEnd - mVectorStart
             # Create a locator per joint number
             distMultiplier = avgDist
-            self.listaLocators=[]
             for i in range(self.locNumber):
                 newPoint = mVectorResult * distMultiplier
                 finalPoint = mVectorStart + newPoint
                 distMultiplier = distMultiplier + avgDist
-
-                locator=cmds.spaceLocator(n=nombreRig+str(i)+'_LOC')
-                cmds.move(finalPoint.x, finalPoint.y, finalPoint.z, locator[0], rpr=True)
-                self.listaLocators.append(locator)
-            self.listaLocators.insert(0, self.startLocator)
-            self.listaLocators.insert(len(self.listaLocators), self.endLocator)
+                locator = cmds.spaceLocator(n=nombreRig+str(i)+'_LOC')
+                cmds.move( finalPoint.x, finalPoint.y, finalPoint.z, locator[0], rpr=True )
+                self.listaLocators.append( locator[0] )
+                cmds.parent( locator[0],self.grp )
+            self.listaLocators.insert( 0, self.sLocator )
+            self.listaLocators.insert( len(self.listaLocators), self.eLocator )
+            print self.listaLocators
+            return self.listaLocators
         else:
             cmds.warning('No concuerda con start y ends')
-        return self.listaLocators
 
     def createJoints(self):
         print 'joint si'
         jointsList=[]
+        nombreRig=self.UI.lineEdit.text()
         if self.listaLocators:
+            print 'entro'
             for loc in range(len(self.listaLocators)):
                 pos = cmds.xform(self.listaLocators[loc], q=True, ws=True, rp=True)
-                joint=cmds.joint(n=str(self.namefield)+str(loc)+'_JNT')
+                joint = cmds.joint(n=nombreRig+str(loc)+'_JNT')
                 cmds.move(pos[0],pos[1],pos[2], joint, rpr=True)
                 jointsList.append(joint)
             #emparento al mundo el primer joint
             cmds.parent(jointsList[0],world=True)
+            cmds.parent( jointsList[0],self.grp )
             #Orientar el joint
             cmds.joint(jointsList[0],edit=True, orientJoint='xyz', secondaryAxisOrient='yup',children=True, zeroScaleOrient=True)
+        else:
+            self.listaLocators.append( cmds.ls(nombreRig+'*_LOC')[0] )
+            self.createJoint
+            return jointsList
