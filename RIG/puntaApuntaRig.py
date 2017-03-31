@@ -17,6 +17,8 @@ class puntaApunta():
         self.sLocator=None
         self.eLocator=None
         self.grp=None
+
+    def win(self):
         #UI START
         loader = QtUiTools.QUiLoader()
         currentDir = os.path.dirname(__file__)
@@ -121,7 +123,9 @@ class puntaApunta():
                 cmds.move(pos[0],pos[1],pos[2], joint, rpr=True)
                 jointsList.append(joint)
             #emparento al mundo el primer joint
+            cmds.listRelatives( jointsList[0] )
             cmds.parent(jointsList[0],world=True)
+            #emparento todo al grupo para ordenar
             cmds.parent( jointsList[0],self.grp )
             #Orientar el joint
             cmds.joint(jointsList[0],edit=True, orientJoint='xyz', secondaryAxisOrient='yup',children=True, zeroScaleOrient=True)
