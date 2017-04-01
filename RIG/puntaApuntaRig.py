@@ -7,12 +7,23 @@ from PySide2 import QtCore, QtGui, QtUiTools
 from math import sqrt
 import maya.OpenMaya as OpenMaya
 
-#RIG FINGER
+'''
+import maya.cmds
+import sys
+path=r'F:\Repositores\GitHub\ES_SCRIPTS\RIG'
+if not path in sys.path:
+	sys.path.append(path)
+import puntaApuntaRig as paprig
+reload(paprig)
+UI2=paprig.puntaApunta()
+UI2.win()
+
+'''
 class puntaApunta():
 
     def __init__(self):
-        self.namefield = 'C_SPINE_SPINE'
-        self.locNumber = 2
+        self.nombreRig = 'L_FINGER_RING'
+        self.locNumber = 3
         self.listaLocators=[]
         self.sLocator=None
         self.eLocator=None
@@ -27,15 +38,15 @@ class puntaApunta():
         self.UI = loader.load(uifile) # Qt objects are inside ui, so good idea to save the variable to the class, 2nd arg should refer to self
         uifile.close()
 
-        #VARIABLES RIG
-        nombreRig='puntaApuntaRig'
         #SET DE FUNCIONES
         self.UI.startEndBt.clicked.connect(self.crearLocatorsStartEnd)
         #self.UI.locatorsBt.clicked.connect(lambda: self.crearLocsIntermedios)
         self.UI.locatorsBt.clicked.connect(self.crearLocsIntermedios)
         self.UI.jointsBt.clicked.connect(self.createJoints)
+        #Valor inicial del seleccionEdge
+        self.UI.spinBox.setValue(self.locNumber)
         #SET DE OTRAS OPCIONES
-        self.UI.lineEdit.setText(nombreRig.upper())
+        self.UI.lineEdit.setText(self.nombreRig.upper())
         #UI SHOW
         self.UI.show()
 
@@ -115,18 +126,33 @@ class puntaApunta():
         print 'joint si'
         jointsList=[]
         nombreRig=self.UI.lineEdit.text()
+        if not self.listaLocators:
+            self.listaLocators=cmds.ls(nombreRig+'*_LOC', type='transform')
+            self.listaLocators.remove(nombreRig+'END_LOC')
+            self.listaLocators.remove(nombreRig+'START_LOC')
+            self.listaLocators.sort()
+            self.listaLocators.insert(0,nombreRig+'START_LOC')
+            self.listaLocators.append(nombreRig+'END_LOC')
+
         if self.listaLocators:
             print 'entro'
             for loc in range(len(self.listaLocators)):
-                pos = cmds.xform(self.listaLocators[loc], q=True, ws=True, rp=True)
+                pos = cmds.xform(self.listaLocators[loc], q=True, ws=True,m=True)
                 joint = cmds.joint(n=nombreRig+str(loc)+'_JNT')
-                cmds.move(pos[0],pos[1],pos[2], joint, rpr=True)
+                cmds.xform(joint,m=1)
+                if str(self.listaLocators[loc])==nombreRig+'START'+'_LOC':
+                    #copiar orientacion primer loc
+                    ocnt=cmds.orientConstraint(self.listaLocators[loc],joint)
+                    cmds.delete(ocnt)
                 jointsList.append(joint)
-            #emparento al mundo el primer joint
-            cmds.listRelatives( jointsList[0] )
-            cmds.parent(jointsList[0],world=True)
-            #emparento todo al grupo para ordenar
-            cmds.parent( jointsList[0],self.grp )
+            #cmds.listRelatives( jointsList[0] )
+            try:
+                #emparento al mundo el primer joint
+                cmds.parent(jointsList[0],world=True)
+                #emparento todo al grupo para ordenar
+                cmds.parent( jointsList[0],self.grp )
+            except:
+                pass
             #Orientar el joint
             cmds.joint(jointsList[0],edit=True, orientJoint='xyz', secondaryAxisOrient='yup',children=True, zeroScaleOrient=True)
         else:
