@@ -6,13 +6,13 @@ import sys , os
 from PySide2 import QtCore, QtGui, QtUiTools
 from math import sqrt
 import maya.OpenMaya as OpenMaya
-
+import weakref
 '''
 import maya.cmds
 import sys
 path=r'F:\Repositores\GitHub\ES_SCRIPTS\RIG'
 if not path in sys.path:
-	sys.path.append(path)
+    sys.path.append(path)
 import puntaApuntaRig as paprig
 reload(paprig)
 UI2=paprig.puntaApunta()
@@ -28,6 +28,11 @@ class puntaApunta():
         self.sLocator=None
         self.eLocator=None
         self.grp=None
+
+    #Borro lo que esta en memoria
+    def __del__(self):
+        print 'salio y borro todo'
+        cmds.delete(cmds.select(self.listaLocators))
 
     def win(self):
         #UI START
@@ -86,6 +91,8 @@ class puntaApunta():
 
         return self.sLocator,self.eLocator
 
+
+
     def crearLocsIntermedios(self):
         #Cantidad de intermedios
         self.locNumber = self.UI.spinBox.value()
@@ -135,25 +142,25 @@ class puntaApunta():
             self.listaLocators.append(nombreRig+'END_LOC')
 
         if self.listaLocators:
+            cmds.select(cl=True)
             print 'entro'
             for loc in range(len(self.listaLocators)):
                 pos = cmds.xform(self.listaLocators[loc], q=True, ws=True,m=True)
                 joint = cmds.joint(n=nombreRig+str(loc)+'_JNT')
-                cmds.xform(joint,m=1)
+                cmds.xform(joint,m=pos,worldSpace=True)
                 if str(self.listaLocators[loc])==nombreRig+'START'+'_LOC':
                     #copiar orientacion primer loc
                     ocnt=cmds.orientConstraint(self.listaLocators[loc],joint)
                     cmds.delete(ocnt)
                 jointsList.append(joint)
-            #cmds.listRelatives( jointsList[0] )
             try:
-                #emparento al mundo el primer joint
-                cmds.parent(jointsList[0],world=True)
                 #emparento todo al grupo para ordenar
                 cmds.parent( jointsList[0],self.grp )
             except:
-                pass
-            #Orientar el joint
+                #emparento al mundo el primer joint
+                cmds.parent(jointsList[0],world=True)
+            #reset and Orientar el joint
+            cmds.makeIdentity(jointsList, apply=True,translate=1, rotate=1, scale=1,jointOrient=True)
             cmds.joint(jointsList[0],edit=True, orientJoint='xyz', secondaryAxisOrient='yup',children=True, zeroScaleOrient=True)
         else:
             self.listaLocators.append( cmds.ls(nombreRig+'*_LOC')[0] )
