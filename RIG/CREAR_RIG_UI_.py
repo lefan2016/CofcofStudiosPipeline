@@ -37,6 +37,8 @@ def createUI(name='NAMEINGERFACE',size=10.0,texto='no name'):
         for a in transfomrs:
             cmds.setAttr(str(shape)+'.'+a, lock=True,keyable=False,channelBox=False)
 
+        cmds.select(ztr)
+
     else:
         cmds.warning('Eliga otro nombre para la interface porfavor, '+name+' ya existe.')
 
