@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import maya.cmds as cmds
-
+nameCharacter='BEARDGUY_GEO_'
 bearGuy=['BEARDGUY_BEARD_MSH',
              'BEARDGUY_HEAD_MSH',
              'BEARDGUY_HAT_MSH',
@@ -96,13 +96,13 @@ def onOffVisibility(listaAprender=[], listaApagar=[] ):
             cmds.setAttr(obj+'.v',0)
 
 #Agrega el namespace si lo necesita
-bearGuy=agregarnameSpace(bearGuy,'BEARDGUY_GEO_')
+bearGuy=agregarnameSpace(bearGuy,nameCharacter)
 bearGuyCNT=agregarnameSpace(bearGuyCNT)
 
-samurai=agregarnameSpace(samurai,'BEARDGUY_GEO_')
+samurai=agregarnameSpace(samurai,nameCharacter)
 samuraiCNTS=agregarnameSpace(samuraiCNTS)
 
-mexican=agregarnameSpace(mexican,'BEARDGUY_GEO_')
+mexican=agregarnameSpace(mexican,nameCharacter)
 mexicanCNT=agregarnameSpace(mexicanCNT)
 
 #Check si existen
@@ -138,10 +138,10 @@ def win():
         cmds.deleteUI('facialUi')
     win = cmds.window('facialUi', title='FACIAL UI - BEARDGUY',widthHeight=[320,600])
     cmds.paneLayout()
-    mo=cmds.modelPanel(camera='FACE_UI_CAM')
+    mo=cmds.modelPanel(camera=nameCharacter+':FACE_UI_CAM')
     cmds.modelPanel(mo,edit=True,menuBarVisible=False)
     currState = cmds.grid( toggle=True, q=True )
-    cmds.grid('FACE_UI_CAM', toggle=(currState==0) )
+    cmds.grid(nameCharacter+':'+'FACE_UI_CAM', toggle=(currState==0) )
     cmds.rowLayout(numberOfColumns=3)
     cmds.symbolButton("bearGuyBtn", command=bearGuyBtn,image = r"F:\EMPRESAS\2VEINTE\MICROSOFT_VR\ASSETS\CHARS\02_BEARDGUY\beardguy_btn.png", width = 100, height = 100, backgroundColor = [0.2, 0.2, 0.2],)
     cmds.symbolButton("samuraiBtn", command=samuraiBtn,image = r"F:\EMPRESAS\2VEINTE\MICROSOFT_VR\ASSETS\CHARS\02_BEARDGUY\samurai_btn.png", width = 100, height = 100, backgroundColor = [0.2, 0.2, 0.2])
