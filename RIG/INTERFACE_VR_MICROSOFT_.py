@@ -1,10 +1,20 @@
 # -*- coding: utf-8 -*-
 import maya.cmds as cmds
 import maya.mel as mel
-nameCamera='BEARDGUY_FACE_UI_CAM'
+nameCamera='BEARDGUY_RIG_:BEARDGUY_FACE_UI_CAM'
 nameSpaceGeo='BEARDGUY_GEO_'
 nameSpaceRig='BEARDGUY_RIG_'
-
+'''
+import maya.cmds
+import sys
+path=r'F:\Repositores\GitHub\ES_SCRIPTS\RIG'
+if not path in sys.path:
+	sys.path.append(path)
+import INTERFACE_VR_MICROSOFT_
+reload(INTERFACE_VR_MICROSOFT_)
+import INTERFACE_VR_MICROSOFT_
+INTERFACE_VR_MICROSOFT_.win()
+'''
 
 CHAR1_GEO=['BEARDGUY_BEARD_MSH',
              'BEARDGUY_HEAD_MSH',
@@ -127,7 +137,7 @@ def char3(*args):
     onOffVisibility(CHAR3_CNT,CHAR2_CNT)
 
 def dinamicasOnOffMexico(onOff=False):
-    list=cmds.ls(nameSpaceRig+':*_BEARDGUY_MEXICAN_HATBALL_*HSYM')
+    list=cmds.ls(nameSpaceRig+':*_BEARDGUY_MEXICAN_HATBALL_*HSYMShape')
     for o in list:
         o=cmds.listRelatives(o)[0]
         if onOff==False:
@@ -142,15 +152,14 @@ def dinOnOff():
     global onOff
     onOff=dinamicasOnOffMexico((onOff==False))
 
-def win(namespace='',cameraName=''):
+def win(namespace='',camera=''):
 
     if cmds.window('facialUi', ex=True):
         cmds.deleteUI('facialUi')
-    win = cmds.window('facialUi', title='FACIAL UI - '+ cameraName, widthHeight=[400,700] )
+    win = cmds.window('facialUi', title='FACIAL UI - '+ camera, widthHeight=[400,700] )
     FacialGUI = cmds.formLayout()
     panel=cmds.modelPanel()
-
-    FacialPanel=cmds.modelPanel(panel,edit=True,camera=namespace + ':' + cameraName)
+    FacialPanel=cmds.modelPanel(panel,edit=True,camera= camera)
     cmds.formLayout(FacialGUI, e=True,
                     attachForm=[
                         (FacialPanel, "top", 0),
@@ -159,9 +168,9 @@ def win(namespace='',cameraName=''):
                         (FacialPanel, "right", 0)])
 
     column = cmds.rowLayout(numberOfColumns=4)
-    cmds.symbolButton("bearGuyBtn", command=char1,image = "beardguy_btn.png", width = 100, height = 100, backgroundColor = [0.2, 0.2, 0.2])
-    cmds.symbolButton("samuraiBtn", command=char2,image = "samurai_btn.png", width = 100, height = 100, backgroundColor = [0.2, 0.2, 0.2])
-    cmds.symbolButton("mexicanBtn", command=char3,image = "mexican_btn.png", width = 100, height = 100, backgroundColor = [0.2, 0.2, 0.2])
+    cmds.symbolButton("char1", command=char1,image = "beardguy_btn.png", width = 100, height = 100, backgroundColor = [0.2, 0.2, 0.2])
+    cmds.symbolButton("char2", command=char2,image = "samurai_btn.png", width = 100, height = 100, backgroundColor = [0.2, 0.2, 0.2])
+    cmds.symbolButton("char3", command=char3,image = "mexican_btn.png", width = 100, height = 100, backgroundColor = [0.2, 0.2, 0.2])
     column = cmds.rowLayout(numberOfColumns=1)
     cmds.checkBox("dinamicCheckBox", label = "Dinamic_Mexican_Hat", onCommand = 'dinamicasOnOffMexico(True)', offCommand = "dinamicasOnOffMexico(False)", value = 0)
 
