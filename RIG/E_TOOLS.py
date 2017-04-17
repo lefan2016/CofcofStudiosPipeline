@@ -271,7 +271,6 @@ def CambiaLado(arg):
 
 	sel= mc.ls(sl=True)
 
-
 	for obj in sel:
 		# Variables
 		lado = obj[0]
@@ -280,12 +279,12 @@ def CambiaLado(arg):
 		if lado[0] == 'L':
 			lado = 'R'
 			mc.rename (obj, lado+nombre)
-			return printFuncion('Switch letter L in') + lado
+			#return printFuncion('Switch letter L in') + lado
 
 		if lado[0] == 'R':
 			lado = 'L'
 			mc.rename (obj, lado+nombre)
-			return printFuncion('Switch letter R in') + lado
+			#return printFuncion('Switch letter R in') + lado
 '''
 sel= mc.ls(sl=True)
 
