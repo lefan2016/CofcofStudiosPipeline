@@ -160,8 +160,8 @@ class puntaApunta():
                 #emparento al mundo el primer joint
                 cmds.parent(jointsList[0],world=True)
             #reset and Orientar el joint
-            cmds.makeIdentity(jointsList, apply=True,translate=1, rotate=1, scale=1,jointOrient=True)
-            cmds.joint(jointsList[0],edit=True, orientJoint='xyz', secondaryAxisOrient='yup',children=True, zeroScaleOrient=True)
+            cmds.makeIdentity(jointsList[0], apply=True,translate=1, rotate=1, scale=1,n=0,pn=True,jointOrient=True)
+            #cmds.joint(jointsList[0],edit=True, orientJoint='xyz', secondaryAxisOrient='yup',children=True, zeroScaleOrient=True)
         else:
             self.listaLocators.append( cmds.ls(nombreRig+'*_LOC')[0] )
             self.createJoint
