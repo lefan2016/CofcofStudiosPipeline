@@ -1,1 +1,0 @@
-+ Maya2017ExocortexAlembic 1.0 P:\LOCAL\ES_SCRIPTS\EXOCORTEX\ExocortexCrate\Maya\2017\Module
