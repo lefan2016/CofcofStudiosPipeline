@@ -20,9 +20,11 @@ E_TOOLS.emanTools()
 # Imports
 #-----------------------------------------------------------------------------------------------
 import sys
+
 import maya.cmds as mc
 import random as rm
 import os
+import re
 from functools import partial
 #-----------------------------------------------------------------------------------------------
 # END Imports
@@ -527,23 +529,26 @@ def createClusterInVertex(arg):#Crea un cluster con la seleccion de VERTICES
 	        mc.rename(cls[1],str(n)+str(nV[:-1])+'_CLS')
 #-----------------------------------------------------------------------------------------------
 def createJointInVertex(arg):#Crea un JOINT con la seleccion de VERTICES
-	objs = mc.ls(sl=1)
+
+	objs = mc.ls(sl=1,fl=1)
+	objectName=mc.listRelatives(mc.ls(sl=1,objectsOnly=True), parent=True)[0]
 	sel=[]
 	if '.vtx[' in objs[0]:
-	    for v in objs:
-	        pos=mc.pointPosition(v)
-	        mc.select(cl=1)
-	        jnt=mc.joint(name=str(o)+'_JNT',p=pos)
-	        sel.append(jnt)
+		for v in objs:
+			pos=mc.pointPosition(v)
+			mc.select(cl=1)
+			jnt=mc.joint(name= str(objectName)+str( re.findall( r'\b\d+\b', str(v))[0] ) + '_JNT', p=pos, rad=0.5)
+			sel.append(jnt)        
 	else:
-	    for o in objs:
-	        mc.select(cl=1)
-	        jnt=mc.joint(name=str(o)+'_JNT',rad=0.5)
-	        mc.select(cl=1)
-	        mc.delete( mc.parentConstraint( o, jnt ) )
-	        sel.append(jnt)
-	mc.select(sel)
+		for o in objs:
+			mc.select(cl=1)
+			jnt=mc.joint(name=str(o)+'JNT',rad=0.5)
+			mc.select(cl=1)
+			mc.delete( mc.parentConstraint( o, jnt ) )
+			sel.append(jnt)
 
+
+	mc.select(sel)
 #-----------------------------------------------------------------------------------------------
 #Crea una serie de condiciones para lograr un driven key programable.
 def setDrivenKeyCondition(source='',target='',axiX='x',axiY='y',axiZ='z'):

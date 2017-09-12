@@ -1,7 +1,9 @@
 // Place your settings in this file to overwrite default and user settings.
 {
     "python.autoComplete.extraPaths": [
-    "C:/Program Files/Autodesk/Maya2017/Python/Lib/site-packages/",
-    "C:/Python27/Lib/site-packages/",
-    "C:/Program Files/Autodesk/Maya2017/Python/Lib/site-packages/pymel" ]
+        "C:/Program Files/Autodesk/Maya2018/Python/Lib/site-packages",
+        "C:/Program Files/AutodeskvMaya2018/Python/Lib/site-packages/maya",
+        "C:/Python27/Lib/site-packages"
+    ],
+    "python.linting.pylintEnabled": false
 }
