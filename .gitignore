@@ -215,3 +215,9 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+
+#############
+## ACRHIVOS QUE NO QUIERO SINCRONIZAR
+#############
+UTILITYES2.py
