@@ -4,13 +4,13 @@ def dirs_files_dic ( mypath , filterExtension ):
     Example:
         dirs_files_dic('O:\\EMPRESAS\\RIG_FACE2D\\ScriptingGuideRig\\Maps','png')
     '''
-    
     from glob import glob
     from os import listdir
     from os.path import isfile, join
-
     returnDic = {}
-    for subdir in glob ( mypath+"//*/" ) :
+    dirs= [f for f in os.listdir(mypath) if not isfile(join(mypath, f))]
+    for subdir in dirs:
+        subdir = mypath+'\\'+subdir
         onlyfiles = [f for f in listdir(subdir) if ( isfile(join(subdir, f)) and os.path.splitext(f)[1]=='.'+filterExtension)]
         returnDic[subdir]= onlyfiles
     return returnDic
