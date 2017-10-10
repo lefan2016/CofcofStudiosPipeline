@@ -18,18 +18,3 @@ def dirs_files_dic ( mypath , filterExtension ):
         onlyfiles = [f for f in listdir(subdir) if ( isfile(join(subdir, f)) and os.path.splitext(f)[1]=='.'+filterExtension)]
         returnDic[subdir]= onlyfiles
     return returnDic
-
-mypath     = 'O:\EMPRESAS\RIG_FACE2D\ScriptingGuideRig\Maps'
-dirsFiles  = dirs_files_dic( mypath ,'png')
-layerTex   = createNode ( 'layeredTexture' , n = 'Face_LTX' )
-#projectors = []      projectors.append ( projector )
-for k in dirsFiles.keys():
-    layer = k.split('\\')[-1]
-    projector  = createNode ( 'projection' , n = layer + '_PRJ'   )
-    imgSeq     = createNode ( 'file'       , n = layer + 'FILE'   )
-    #img -> projection
-    connectAttr ( imgSeq + '.outColor'     , projector + '.image' )
-    for channel in ('R','G','B'):
-        connectAttr ( imgSeq + '.outAlpha' , projector + '.transparency' + channel )  # conecto imagen al projection
-    # projection -> layeredTexture
-    connectAttr ( projector + '.outColor'  , layerTex + 'inputs[7]' )
