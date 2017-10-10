@@ -26,5 +26,4 @@ class Ui_autoRigUI(object):
         QtCore.QMetaObject.connectSlotsByName(autoRigUI)
 
     def retranslateUi(self, autoRigUI):
-        autoRigUI.setWindowTitle(QtGui.QApplication.translate("autoRigUI", "AUTO RIG - ESPIRAL STUDIOS", None, QtGui.QApplication.UnicodeUTF8))
-
+        autoRigUI.setWindowTitle(QtGui.QApplication.translate("autoRigUI", "AUTO RIG - COFCOF STUDIOS", None, QtGui.QApplication.UnicodeUTF8))
