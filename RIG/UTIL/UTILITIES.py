@@ -33,6 +33,18 @@ def dirs_files_dic(mypath, filterExtension, keyWord=None):
     return returnDic
 
 
+def createIfNeeded( node_Name , node_Type ):
+    '''
+    Creates a node_Type with named node_Name if it doesnt exist.
+    Returns node_Name
+    Example:
+    '''
+    if not objExists ( node_Name ) :
+        nodeRet  =   createNode ( node_Type , n = node_Name )
+    else:
+        nodeRet   = node_Name
+    return nodeRet
+
 # Crea un offset en seleccion.
 def offSetGrp(obj=None, suf=''):
     newName = ''
