@@ -9,27 +9,30 @@ from pymel.core import *
 # pases y puede buscar palabra especificas en archivo
 
 
-def dirs_files_dic(mypath, filterExtension, keyWord=None):
+def dirs_files_dic(mypath, filterExtension, keyWord=''):
     '''
+    type (string) mypath: Ruta de carpeta.
+    type (string) filterExtension: contiene el tipo de extencion a buscar.
+    type (string) keyWord: enlista archivos si contiene la palabra dentro de keyWord.
     Returns a dic { Dir : files in Dir }. A dictonary with subdirectories and files inside them from a directory input.
     Example:
         dirs_files_dic('O:\EMPRESAS\RIG_FACE2D\ScriptingGuideRig\Maps','png')
 
+
     '''
-    from os import listdir
-    from os.path import isfile, join
     returnDic = {}
     dirs = [f for f in listdir(mypath) if not isfile(join(mypath, f))]
     for subdir in dirs:
         subdir = mypath + '\\' + subdir
-        onlyfiles = [f for f in listdir(subdir) if (
-            isfile(join(subdir, f)) and os.path.splitext(f)[1] == '.' + filterExtension)]
-        if keyWord:
+        onlyfiles = [f for f in listdir(subdir) if ( isfile(join(subdir, f)) and os.path.splitext(f)[1] == '.' + filterExtension) and keyWord in f]
+        if not keyWord=='':
             fileText = []
             for f in onlyfiles:
                 if keyWord in f:
                     fileText.append(f)
-        returnDic[subdir] = onlyfiles
+            returnDic[subdir] = fileText
+        else:
+            returnDic[subdir] = onlyfiles
     return returnDic
 
 
