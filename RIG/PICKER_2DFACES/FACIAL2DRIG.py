@@ -230,7 +230,7 @@ def getLocation ( meshS ): # del bBoxCentera
     bBoxCenter = meshS.getBoundingBox().center()  # repr (ls(sl=1)[0].getBoundingBox() ) help( dt.BoundingBox ) help( nt.Transform )
     return bBoxCenter
 
-def validateInitLocButtCmd ():
+def validateInitLocButtCmd(*args):
     if len(ls(sl=1))==1 and nodeType( ls(sl=1)[0].getShape() ) == 'mesh':
         return createInitialLocators( ls(sl=1)[0] )
     else:
@@ -279,7 +279,7 @@ def deleteHelpLocators ():
 
 ####### ####### ####### ####### ####### ####### ####### #######
 
-def create2DFacialRig (  ):
+def create2DFacialRig ( *args ):
     selection = ls(sl=1)
     if selValidation ( selection ) :
         for s in selection:
@@ -332,7 +332,7 @@ if cmds.window ('win2dFacialRig',exists=1):
 win = cmds.window('win2dFacialRig', title="2D Facial Rig! v1.0" , menuBar=0 , w=100 , s=1 , height= 100, bgc=(0.1,0.1,0.1) , resizeToFitChildren=1 )
 #location_locators = createInitialLocators(sel)
 col1 = cmds.columnLayout( columnAttach=('left', 5), rowSpacing=10, columnWidth=550 , p=win , bgc=(0.3,0.3,0.3) )
-cmds.button('1 ) Select the head mesh and click me. \n',p=col1,c="validateInitLocButtCmd ()" )
+cmds.button('1 ) Select the head mesh and click me. \n',p=col1,c=validateInitLocButtCmd)
 cmds.text('Place locators where eyes and mouth\nshould be. Rotations are considered.',p=col1)
 c1 = cmds.columnLayout( columnAttach=('left', 5), rowSpacing=10, columnWidth=550, p=win , bgc=(0.3,0.3,0.3) )
 cmds.text('\n2 ) Shift-Select:',p=c1)
@@ -344,5 +344,5 @@ cmds.text('-  Head controller.',p=c1)
 c2 = cmds.columnLayout( columnAttach=('left', 5), rowSpacing=10, columnWidth=550 , p=win , bgc=(0.3,0.3,0.3) )
 r1 = cmds.rowLayout( numberOfColumns=2, columnWidth3=(80, 75, 150), adjustableColumn=1, columnAlign=(1, 'right'), columnAttach=[(1, 'both', 0), (2, 'both', 0)] )
 cmds.text('and press:  ' , p = r1 )
-cmds.button( label = 'RIG HEAD' , command = 'location_locators=create2DFacialRig ()' , p = r1 )
+cmds.button( label = 'RIG HEAD' , command = create2DFacialRig , p = r1 )
 cmds.showWindow (win)
