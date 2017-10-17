@@ -16,7 +16,7 @@ def dirs_files_dic(mypath, filterExtension, keyWord=''):
     type (string) keyWord: enlista archivos si contiene la palabra dentro de keyWord.
     Returns a dic { Dir : files in Dir }. A dictonary with subdirectories and files inside them from a directory input.
     Example:
-        dirs_files_dic('O:\EMPRESAS\RIG_FACE2D\ScriptingGuideRig\Maps','png')
+        dirs_files_dic('O:\EMPRESAS\RIG_FACE2D\ScriptingGuideRig\Maps','png', 'proxy')
 
 
     '''
