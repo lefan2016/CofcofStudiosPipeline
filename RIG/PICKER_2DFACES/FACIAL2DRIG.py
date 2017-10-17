@@ -136,7 +136,8 @@ def createAimSystem ( layer , placer , loc , headBBoxCenter ):
     return locAim
 
 def connectAlphas ( layeredTextureDic ):
-    alphas = {10:10 , 11:12 , 12:12 , 13:13 , 14:15 , 15:15 } # que layer usa el layer. el 10 usa el 10, el 11 usa el 12, el 13 usa el 13, el 14 usa el 15,,,
+
+    alphas = {7:12 , 8:15 , 9:12 , 10:12 , 11:12 , 12:12 , 13:13 , 14:15 , 15:15 } # que layer usa el layer. el 10 usa el 10, el 11 usa el 12, el 13 usa el 13, el 14 usa el 15,,,
     for pos in layeredTextureDic.keys():
         connImg2ProjAlpha ( layeredTextureDic[ alphas[pos] ][1] , layeredTextureDic[pos][0] )
 
@@ -229,15 +230,21 @@ def getLocation ( meshS ): # del bBoxCentera
     bBoxCenter = meshS.getBoundingBox().center()  # repr (ls(sl=1)[0].getBoundingBox() ) help( dt.BoundingBox ) help( nt.Transform )
     return bBoxCenter
 
-def createInitialLocators(sel): # del location, initialLocators, loc
+def validateInitLocButtCmd ():
+    if len(ls(sl=1))==1 and nodeType( ls(sl=1)[0].getShape() ) == 'mesh':
+        return createInitialLocators( ls(sl=1)[0] )
+    else:
+        warning ('Please, select the head mesh.')
+def createInitialLocators(sel):
     '''
     Crea locators para posicion inicial de projectores.
     '''
-    location = getLocation ( sel )
+    location = getLocation (  sel )
     locationOffsetX = sel.getBoundingBox().width() / 4 # help (nt.Transform)   help (dt.BoundingBox)   ls(sl=1)[0].translate.set ( 1,1,1)
     locationOffsetY = sel.getBoundingBox().height()/ 4
     locationOffsetZ = sel.getBoundingBox().depth() / 2
     select(cl=1)
+    msg = 'MSG:'
     posX = location[0] + locationOffsetX
     posY = location[1] - locationOffsetY
     posZ = location[2] + locationOffsetZ
@@ -252,6 +259,7 @@ def createInitialLocators(sel): # del location, initialLocators, loc
         pEyeX = getAttr('L_Eye_LOC.translateX')
         pEyeY = getAttr('L_Eye_LOC.translateY')
         pEyeZ = getAttr('L_Eye_LOC.translateZ')
+        msg = 'L_Eye_LOC does exist. Place it where you think eye should be.   '
     if not objExists( 'Mouth_LOC' ):
         loc2 = spaceLocator( n='Mouth_LOC')
         loc2.translate.set ( location[0] , posY , posZ )
@@ -259,6 +267,9 @@ def createInitialLocators(sel): # del location, initialLocators, loc
         pMouthX = getAttr('Mouth_LOC.translateX')
         pMouthY = getAttr('Mouth_LOC.translateY')
         pMouthZ = getAttr('Mouth_LOC.translateZ')
+        msg += ' Mouth_LOC does exist. Place it where you think mouth should be.'
+    warning (msg)
+
     return { 'L_Eye_LOC': [pEyeX , pEyeY , pEyeZ ]  , 'Mouth_LOC': [ pMouthX , pMouthY , pMouthZ ]  }
 
 def deleteHelpLocators ():
@@ -281,7 +292,7 @@ def create2DFacialRig (  ):
                 headControl = s
         location_locators = createInitialLocators(sel)
         mypath       = 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES'
-        ordenLayers  = { 'l_ojo': 15 , 'l_pupila' : 14 , 'l_parpado' : 13 , 'boca' : 12 , 'lengua' : 11 , 'extras' : 10 }
+        ordenLayers  = { 'extras2' : 7 , 'extras' : 8 , 'lengua' : 9 , 'b_diente' : 10 , 'a_diente' : 11 , 'boca' : 12 , 'l_parpado' : 13 , 'l_pupila' : 14 , 'l_ojo': 15 }
         dirsFiles    = dirs_files_dic( mypath ,'png')
         layeredTextureDic = {}
         layerTex     =   createIfNeeded ( 'Face_LTX' , 'layeredTexture' )
@@ -316,13 +327,12 @@ def create2DFacialRig (  ):
         warning ( '  Selection is null or multiple. Select head mesh ' )
 
 
-
 if cmds.window ('win2dFacialRig',exists=1):
     cmds.deleteUI ( 'win2dFacialRig' )
 win = cmds.window('win2dFacialRig', title="2D Facial Rig! v1.0" , menuBar=0 , w=100 , s=1 , height= 100, bgc=(0.1,0.1,0.1) , resizeToFitChildren=1 )
 #location_locators = createInitialLocators(sel)
 col1 = cmds.columnLayout( columnAttach=('left', 5), rowSpacing=10, columnWidth=550 , p=win , bgc=(0.3,0.3,0.3) )
-cmds.button('1 ) Select the head mesh and click me. \n',p=col1,c="createInitialLocators(ls(sl=1)[0])" )
+cmds.button('1 ) Select the head mesh and click me. \n',p=col1,c="validateInitLocButtCmd ()" )
 cmds.text('Place locators where eyes and mouth\nshould be. Rotations are considered.',p=col1)
 c1 = cmds.columnLayout( columnAttach=('left', 5), rowSpacing=10, columnWidth=550, p=win , bgc=(0.3,0.3,0.3) )
 cmds.text('\n2 ) Shift-Select:',p=c1)
@@ -334,5 +344,5 @@ cmds.text('-  Head controller.',p=c1)
 c2 = cmds.columnLayout( columnAttach=('left', 5), rowSpacing=10, columnWidth=550 , p=win , bgc=(0.3,0.3,0.3) )
 r1 = cmds.rowLayout( numberOfColumns=2, columnWidth3=(80, 75, 150), adjustableColumn=1, columnAlign=(1, 'right'), columnAttach=[(1, 'both', 0), (2, 'both', 0)] )
 cmds.text('and press:  ' , p = r1 )
-cmds.button( label = 'Rig head' , command = 'location_locators=create2DFacialRig ()' , p = r1 )
+cmds.button( label = 'RIG HEAD' , command = 'location_locators=create2DFacialRig ()' , p = r1 )
 cmds.showWindow (win)
