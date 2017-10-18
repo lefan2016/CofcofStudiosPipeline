@@ -35,21 +35,7 @@ def renameMakeNurbCircle( makeNode ):
     newNameMakeCircle = oCurve.split('Shape')[0] + '_makeNCircle'
     return rename ( makeNode , newNameMakeCircle )
 
-def connProj2LayTexture( projector , layerTex , chNumber ):
-    '''
-    Conecta el projector al layeredTexture al canal X. si no esta disponible, lo conecta al proximo disponible.
-    '''
-    counter = chNumber
-    attrConnected = False
-    while not attrConnected : # voy probando hasta dar con el proximo input[X].color disponible
-        try :
-            connectAttr ( projector + '.outColor'  , layerTex + '.inputs['+ str(counter)+'].color' )
-            connectAttr ( projector + '.outAlpha'  , layerTex + '.inputs['+ str(counter)+'].alpha' )
-            attrConnected = True
-        except:
-            counter = counter + 1
-            pass
-    return counter
+
 
 def asignText ( imgSeq , fPath ) :
     '''
@@ -63,7 +49,7 @@ def asignText ( imgSeq , fPath ) :
 
 def createFacePart ( filePath , pos , layerTex , createAt , projScale ):
 
-    layer = filePath.split('\\')[-1]
+    layer = filePath.split('\\')[-1].split('.')[0]
     projector      = createNode ( 'projection' ,     n = layer + '_PRJ'    )
     projector.projType.set(3)
     imgSeq         = createNode ( 'file'       ,     n = layer + '_FILE'   )
@@ -72,16 +58,11 @@ def createFacePart ( filePath , pos , layerTex , createAt , projScale ):
     texturePlacer.inheritsTransform.set(False)
     texturePlacer.translate.set ( createAt )
     connectAttr ( texturePlacer + '.worldInverseMatrix[0]' , projector + '.placementMatrix' , f = 1 )  # conecto matrices
-
     # asigno textura al file.
     asignText ( imgSeq , filePath )
-
     # conecto color y alfa de secuencia de imagen a projector
     connImg2ProjColor ( imgSeq , projector  )
-
-    # conecto projection a un layer determinado o el siguiente disponible.
-    inputNr = connProj2LayTexture( projector , layerTex , pos )
-    return projector , imgSeq , texturePlacer , inputNr
+    return projector , imgSeq , texturePlacer , pos
 
 def connImg2ProjColor ( imgSeq , projector  ):
     '''
@@ -135,11 +116,14 @@ def createAimSystem ( layer , placer , loc , headBBoxCenter ):
     move2 ( loc , locAim )
     return locAim
 
-def connectAlphas ( layeredTextureDic ):
 
-    alphas = {7:12 , 8:15 , 9:12 , 10:12 , 11:12 , 12:12 , 13:13 , 14:15 , 15:15 } # que layer usa el layer. el 10 usa el 10, el 11 usa el 12, el 13 usa el 13, el 14 usa el 15,,,
+
+
+
+def connectAlphas ( layeredTextureDic ):#alphas[7] pos=7
     for pos in layeredTextureDic.keys():
-        connImg2ProjAlpha ( layeredTextureDic[ alphas[pos] ][1] , layeredTextureDic[pos][0] )
+        print ( layeredTextureDic[ alphas[pos] ][1] , layeredTextureDic[alphas[pos] ][0] )
+        connImg2ProjAlpha ( layeredTextureDic[ alphas[pos] ][1] , layeredTextureDic[alphas[pos] ][0] )
 
 def connImg2ProjAlpha ( imgSeq , projector  ):
     '''
@@ -272,31 +256,52 @@ def createInitialLocators(sel):
 
     return { 'L_Eye_LOC': [pEyeX , pEyeY , pEyeZ ]  , 'Mouth_LOC': [ pMouthX , pMouthY , pMouthZ ]  }
 
-def deleteHelpLocators ():
-    for o in ('L_Eye_LOC', 'Mouth_LOC' , 'scaleReference_LOC'):
+def deleteHelpLocators (s):
+    for o in ('L_Eye_LOC', 'Mouth_LOC' , 'locator1'):
         delete (o)
 
 
+
+
+
+
+
+def connProj2LayTexture( projector , layerTex , chNumber  , layeredTextureDic):#chNumber=14 type( layeredTextureDic[chNumber] )
+#( layeredTextureDic[k][0] , layerTex , k )   (nt.Projection(u'l_ojo_PRJ'), nt.LayeredTexture(u'Face_LTX'), 15)
+    '''
+    Conecta el projector al layeredTexture al canal X. si no esta disponible, lo conecta al proximo disponible.
+    '''
+    alphas = {7:12 , 8:15 , 9:12 , 10:12 , 11:12 , 12:12 , 13:13 , 14:15 , 15:15 } # que layer usa el layer. el 10 usa el 10, el 11 usa el 12, el 13 usa el 13, el 14 usa el 15,,,
+
+    connectAttr ( projector + '.outColor'  , layerTex + '.inputs[' + str(chNumber) + '].color' )
+    connectAttr ( layeredTextureDic[ alphas[chNumber] ][0] + '.outAlpha'  , layerTex + '.inputs[' + str(chNumber) + '].alpha' )
+
+    return chNumber
+
 ####### ####### ####### ####### ####### ####### ####### #######
 
-def create2DFacialRig ( *args ):
+def create2DFacialRig ( *args ): #del s
     selection = ls(sl=1)
     if selValidation ( selection ) :
         for s in selection:
             if nodeType( s.getShape() ) == 'locator':
                 locSize = s.scale.get()[0]
+                print s
+                scaleRef = s
             elif nodeType( s.getShape() ) == 'mesh':
+                print s
                 sel = s
                 headSize = s.getBoundingBox().depth() / 2
             elif nodeType( s.getShape() ) == 'nurbsCurve':
+                print s
                 headControl = s
-        location_locators = createInitialLocators(sel)
+        location_locators = createInitialLocators(sel)  #createInitialLocators(ls(sl=1)[0])
         mypath       = 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES'
         ordenLayers  = { 'extras2' : 7 , 'extras' : 8 , 'lengua' : 9 , 'b_diente' : 10 , 'a_diente' : 11 , 'boca' : 12 , 'l_parpado' : 13 , 'l_pupila' : 14 , 'l_ojo': 15 }
         dirsFiles    = dirs_files_dic( mypath ,'png')
         layeredTextureDic = {}
         layerTex     =   createIfNeeded ( 'Face_LTX' , 'layeredTexture' )
-        pjShader     = listConnections( listHistory( sel  ,f=1),type='aiStandard')[0]  # por ahora asumo q tiene aiStandard Shader.
+        #pjShader     = listConnections( listHistory( sel  ,f=1),type='aiStandard')[0]  # por ahora asumo q tiene aiStandard Shader.
         faceShader   = createIfNeeded ( 'Face_SHD' , 'aiStandard' )
         headPivot    = sel.getBoundingBox().center()
         try:
@@ -311,18 +316,21 @@ def create2DFacialRig ( *args ):
                 # path de secuencia
                 filePath = k + '\\' + dirsFiles[k][0]
                 # crea projector,file y placer conectados al canal especificado
-                projectorImagePlacerInput = createFacePart ( filePath , ordenLayers[ layer ] , layerTex  , headPivot  , headSize )
+                projectorImagePlacerInput = createFacePart ( filePath , ordenLayers[ layer ] , layerTex  , headPivot  , headSize )   #s SPLITEAR EL NOMBRE    connProj2LayTexture
                 # guardo parte en dic
-                layeredTextureDic [ projectorImagePlacerInput[3]  ] = projectorImagePlacerInput [ : -1 ]
+                layeredTextureDic [ ordenLayers[ layer ]   ] = projectorImagePlacerInput [ : -1 ]
                 # creo sistema Aim. Argumentos: layer, nombreDelPlacer , locatorParaUbicar.translate
                 locAim = createAimSystem ( layer , projectorImagePlacerInput[2] , loc , headPivot )
                 # creo control para el Aim
                 ccCnt = placerControl ( headSize,objs=locAim , rad = locSize , placer3d = projectorImagePlacerInput[2]  )
                 # guardo control
                 layeredTextureDic [ projectorImagePlacerInput[3]  ] = layeredTextureDic [ projectorImagePlacerInput[3]  ] + tuple( [ ccCnt ] )
-        connectAlphas  ( layeredTextureDic )
+        #connectAlphas  ( layeredTextureDic )
+        # conecto projection a un layer determinado o el siguiente disponible.
+        for k in layeredTextureDic.keys():
+            connProj2LayTexture( layeredTextureDic[k][0] , layerTex , k , layeredTextureDic)  # (nt.Projection(u'l_ojo_PRJ'), nt.LayeredTexture(u'Face_LTX'), 15)
         parentControls ( layeredTextureDic )
-        deleteHelpLocators ()
+        deleteHelpLocators (scaleRef)
     else:
         warning ( '  Selection is null or multiple. Select head mesh ' )
 
