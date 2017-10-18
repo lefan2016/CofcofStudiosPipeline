@@ -8,21 +8,11 @@ path=r'P:\LOCAL\ES_SCRIPTS\RIG'
 if not path in sys.path:
 	sys.path.append(path)
 
-def dirs_files_dic ( mypath , filterExtension ):
-    '''
-    Returns a dic { Dir : files in Dir }. A dictonary with subdirectories and files inside them from a directory input.
-    Example:
-        dirs_files_dic('O:\EMPRESAS\RIG_FACE2D\ScriptingGuideRig\Maps','png')
-    '''
-    from os import listdir
-    from os.path import isfile, join
-    returnDic = {}
-    dirs= [f for f in os.listdir(mypath) if not isfile(join(mypath, f))]
-    for subdir in dirs:
-        subdir = mypath+'\\'+subdir
-        onlyfiles = [f for f in listdir(subdir) if ( isfile(join(subdir, f)) and os.path.splitext(f)[1]=='.'+filterExtension)]
-        returnDic[subdir]= onlyfiles
-    return returnDic
+path=r'I:\guithub\CofcofStudiosPipeline\RIG\UTIL'
+if not path in sys.path:
+	sys.path.append(path)
+
+import UTILITIES
 
 def constraintObj2Cnt (sel,cnts):
     for o in sel:
@@ -35,8 +25,6 @@ def renameMakeNurbCircle( makeNode ):
     newNameMakeCircle = oCurve.split('Shape')[0] + '_makeNCircle'
     return rename ( makeNode , newNameMakeCircle )
 
-
-
 def asignText ( imgSeq , fPath ) :
     '''
     asigna textura al nodo file.
@@ -47,11 +35,38 @@ def asignText ( imgSeq , fPath ) :
         except:
             pass
 
-def createFacePart ( filePath , pos , layerTex , createAt , projScale ):
+def connectUV2File( uvNode , fileNode ):
+    atrs = {'.outUV': '.uvCoord',
+            '.coverage':'.coverage',
+            '.mirrorU':'.mirrorU',
+            '.mirrorV':'.mirrorV',
+            '.noiseUV':'.noiseUV',
+            '.offset':'.offset',
+            '.repeatUV':'.repeatUV',
+            '.rotateUV':'.rotateUV',
+            '.stagger':'.stagger',
+            '.translateFrame':'.translateFrame',
+            '.wrapU':'.wrapU',
+            '.wrapV':'.wrapV',
+            '.outUvFilterSize':'.uvFilterSize',
+            '.vertexCameraOne':'.vertexCameraOne',
+            '.vertexUvOne':'.vertexUvOne',
+            '.vertexUvThree':'.vertexUvThree',
+            '.vertexUvTwo':'.vertexUvTwo'
+            }
+    for k in atrs.keys():
+        connectAttr ( uvNode + k , fileNode + atrs[k] )
 
+def create2DUvNode( name ):
+    uvNode = createNode ( 'place2dTexture' , n = name + '_2DP')
+    uvNode.wrapU.set(0)
+    uvNode.wrapV.set(0)
+    return uvNode
+
+def createFacePart ( filePath , pos , layerTex , createAt , projScale ,uvNode):
     layer = filePath.split('\\')[-1].split('.')[0]
     projector      = createNode ( 'projection' ,     n = layer + '_PRJ'    )
-    projector.projType.set(3)
+    projector.projType.set(1)
     imgSeq         = createNode ( 'file'       ,     n = layer + '_FILE'   )
     imgSeq.useFrameExtension.set(True)
     texturePlacer  = createNode ( 'place3dTexture' , n = layer + '_3DP')  # repr(texturePlacer) help(nt.Place3dTexture)
@@ -60,6 +75,8 @@ def createFacePart ( filePath , pos , layerTex , createAt , projScale ):
     connectAttr ( texturePlacer + '.worldInverseMatrix[0]' , projector + '.placementMatrix' , f = 1 )  # conecto matrices
     # asigno textura al file.
     asignText ( imgSeq , filePath )
+    # conecto el nodo uv2d a la imagen
+    connectUV2File( uvNode , imgSeq )
     # conecto color y alfa de secuencia de imagen a projector
     connImg2ProjColor ( imgSeq , projector  )
     return projector , imgSeq , texturePlacer , pos
@@ -116,10 +133,6 @@ def createAimSystem ( layer , placer , loc , headBBoxCenter ):
     move2 ( loc , locAim )
     return locAim
 
-
-
-
-
 def connectAlphas ( layeredTextureDic ):#alphas[7] pos=7
     for pos in layeredTextureDic.keys():
         print ( layeredTextureDic[ alphas[pos] ][1] , layeredTextureDic[alphas[pos] ][0] )
@@ -155,7 +168,7 @@ def placerControl(headSize,objs=[],placer3d='',nameSuf='ZTR',nameTrf='TRF',nameC
     select(cl=1)
     select( objs )
     objs = cmds.ls(sl=1)
-
+    print 'headsize: ' + str(headSize)
     cntsRet     = []
     ztrs        = []
     makeCircles = []
@@ -191,8 +204,8 @@ def placerControl(headSize,objs=[],placer3d='',nameSuf='ZTR',nameTrf='TRF',nameC
         makeCircles.append ( renameMakeNurbCircle( mCircle ) )
         cmds.parent( obj , cnt )
         mulDivNode = createNode ('multiplyDivide',name=newName+'_MULT' )
-        mulDivNode.input2X.set(headSize)
-        mulDivNode.input2Y.set(headSize)
+        mulDivNode.input2X.set(rad)
+        mulDivNode.input2Y.set(rad)
         mulDivNode.input2Z.set(headSize)
         connectAttr ( cnt + '.scale' , mulDivNode+'.input1' )
         connectAttr ( mulDivNode + '.output' , placer3d + '.scale')
@@ -200,8 +213,6 @@ def placerControl(headSize,objs=[],placer3d='',nameSuf='ZTR',nameTrf='TRF',nameC
         roots.append (root)
         cmds.parent( ztr , root )
     return cntsRet,ztrs,makeCircles,roots
-
-
 
 def ccLook ( circ , controlSize , degree , sections ):
     ccShape = listRelatives ( circ )[0]
@@ -228,7 +239,6 @@ def createInitialLocators(sel):
     locationOffsetY = sel.getBoundingBox().height()/ 4
     locationOffsetZ = sel.getBoundingBox().depth() / 2
     select(cl=1)
-    msg = 'MSG:'
     posX = location[0] + locationOffsetX
     posY = location[1] - locationOffsetY
     posZ = location[2] + locationOffsetZ
@@ -243,7 +253,6 @@ def createInitialLocators(sel):
         pEyeX = getAttr('L_Eye_LOC.translateX')
         pEyeY = getAttr('L_Eye_LOC.translateY')
         pEyeZ = getAttr('L_Eye_LOC.translateZ')
-        msg = 'L_Eye_LOC does exist. Place it where you think eye should be.   '
     if not objExists( 'Mouth_LOC' ):
         loc2 = spaceLocator( n='Mouth_LOC')
         loc2.translate.set ( location[0] , posY , posZ )
@@ -251,38 +260,30 @@ def createInitialLocators(sel):
         pMouthX = getAttr('Mouth_LOC.translateX')
         pMouthY = getAttr('Mouth_LOC.translateY')
         pMouthZ = getAttr('Mouth_LOC.translateZ')
-        msg += ' Mouth_LOC does exist. Place it where you think mouth should be.'
-    warning (msg)
 
     return { 'L_Eye_LOC': [pEyeX , pEyeY , pEyeZ ]  , 'Mouth_LOC': [ pMouthX , pMouthY , pMouthZ ]  }
 
 def deleteHelpLocators (s):
-    for o in ('L_Eye_LOC', 'Mouth_LOC' , 'locator1'):
+    for o in ('L_Eye_LOC', 'Mouth_LOC' , s):
         delete (o)
 
-
-
-
-
-
-
 def connProj2LayTexture( projector , layerTex , chNumber  , layeredTextureDic):#chNumber=14 type( layeredTextureDic[chNumber] )
-#( layeredTextureDic[k][0] , layerTex , k )   (nt.Projection(u'l_ojo_PRJ'), nt.LayeredTexture(u'Face_LTX'), 15)
     '''
     Conecta el projector al layeredTexture al canal X. si no esta disponible, lo conecta al proximo disponible.
     '''
-    alphas = {7:12 , 8:15 , 9:12 , 10:12 , 11:12 , 12:12 , 13:13 , 14:15 , 15:15 } # que layer usa el layer. el 10 usa el 10, el 11 usa el 12, el 13 usa el 13, el 14 usa el 15,,,
-
+    alphas = {7:12 , 8:15 , 9:12 , 10:12 , 11:12 , 12:12 , 13:13 , 14:15 , 15:15 } # que layer usa el alfa de q layer. el 10 usa el 10, el 11 usa el 12, el 13 usa el 13, el 14 usa el 15,,,
+    projMultDiv = createNode ('multiplyDivide', name='multD')
+    connectAttr ( projector.outAlpha , projMultDiv.input1X )
+    connectAttr ( layeredTextureDic[ alphas[chNumber] ][0] + '.outAlpha' , projMultDiv.input2X )
+    connectAttr ( projMultDiv.outputX , layerTex + '.inputs[' + str(chNumber) + '].alpha' )
     connectAttr ( projector + '.outColor'  , layerTex + '.inputs[' + str(chNumber) + '].color' )
-    connectAttr ( layeredTextureDic[ alphas[chNumber] ][0] + '.outAlpha'  , layerTex + '.inputs[' + str(chNumber) + '].alpha' )
-
     return chNumber
 
 ####### ####### ####### ####### ####### ####### ####### #######
 
 def create2DFacialRig ( *args ): #del s
     selection = ls(sl=1)
-    if selValidation ( selection ) :
+    if selValidation ( selection ):
         for s in selection:
             if nodeType( s.getShape() ) == 'locator':
                 locSize = s.scale.get()[0]
@@ -298,12 +299,15 @@ def create2DFacialRig ( *args ): #del s
         location_locators = createInitialLocators(sel)  #createInitialLocators(ls(sl=1)[0])
         mypath       = 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES'
         ordenLayers  = { 'extras2' : 7 , 'extras' : 8 , 'lengua' : 9 , 'b_diente' : 10 , 'a_diente' : 11 , 'boca' : 12 , 'l_parpado' : 13 , 'l_pupila' : 14 , 'l_ojo': 15 }
-        dirsFiles    = dirs_files_dic( mypath ,'png')
+        dirsFiles    = UTILITIES.dirs_files_dic( mypath ,'png')
         layeredTextureDic = {}
         layerTex     =   createIfNeeded ( 'Face_LTX' , 'layeredTexture' )
         #pjShader     = listConnections( listHistory( sel  ,f=1),type='aiStandard')[0]  # por ahora asumo q tiene aiStandard Shader.
         faceShader   = createIfNeeded ( 'Face_SHD' , 'aiStandard' )
         headPivot    = sel.getBoundingBox().center()
+        print 'sel: ' + sel
+        uvNode = create2DUvNode( sel )
+
         try:
             connectAttr ( layerTex + '.outColor'  , faceShader+ '.color' )
         except:
@@ -316,7 +320,7 @@ def create2DFacialRig ( *args ): #del s
                 # path de secuencia
                 filePath = k + '\\' + dirsFiles[k][0]
                 # crea projector,file y placer conectados al canal especificado
-                projectorImagePlacerInput = createFacePart ( filePath , ordenLayers[ layer ] , layerTex  , headPivot  , headSize )   #s SPLITEAR EL NOMBRE    connProj2LayTexture
+                projectorImagePlacerInput = createFacePart ( filePath , ordenLayers[ layer ] , layerTex  , headPivot  , headSize , uvNode)   #s SPLITEAR EL NOMBRE    connProj2LayTexture
                 # guardo parte en dic
                 layeredTextureDic [ ordenLayers[ layer ]   ] = projectorImagePlacerInput [ : -1 ]
                 # creo sistema Aim. Argumentos: layer, nombreDelPlacer , locatorParaUbicar.translate
