@@ -25,7 +25,7 @@ def addAttr_FromFolders( sel , path , extension , filtering ): #del archivosCarp
         addAttr_FromFolders( asdf , 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES' , 'png' , 'proxy' )
     '''
 
-    archivosCarpetas = UTILITIES.dirs_files_dic(path,extension, filtering)
+    archivosCarpetas = dirs_files_dic(path,extension, filtering)
     for key in sorted( archivosCarpetas.keys() ):
         att = key.split('\\')[-1]
         print att
