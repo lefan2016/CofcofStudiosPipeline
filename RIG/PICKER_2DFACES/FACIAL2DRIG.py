@@ -91,7 +91,7 @@ def locChooser (layer,locs):
     '''
     Determina cuál locator se va a usar para crear los controles.
     '''
-    if layer == 'l_ojo' or layer == 'l_pupila' or layer ==  'l_parpado':
+    if layer == 'l_ojo' or layer == 'l_pupila' or layer ==  'l_parpado' or layer ==  'extras':
         choosenLoc = locs[0]
     else:
         choosenLoc = locs[1]
@@ -168,12 +168,12 @@ def placerControl(headSize,objs=[],placer3d='',nameSuf='ZTR',nameTrf='TRF',nameC
     select(cl=1)
     select( objs )
     objs = cmds.ls(sl=1)
-    print 'headsize: ' + str(headSize)
     cntsRet     = []
     ztrs        = []
     makeCircles = []
     roots       = []
     for obj in objs: # obj = 'r_pupila_3DP'
+        print 'OBJ: ' + obj
         if '|' in obj:
             obj=obj.split('|')[-1]
         if '_' in obj:
@@ -193,6 +193,8 @@ def placerControl(headSize,objs=[],placer3d='',nameSuf='ZTR',nameTrf='TRF',nameC
             ccLook (cntl,rad*0.6,1,1)
         elif 'l_parpado' in obj :
             ccLook (cntl,rad*1.2,1,1)
+        elif 'extras_LOC' == obj :
+            ccLook (cntl,rad*1.2,1,4)
         cnt=cntl[0]
         mCircle=cntl[1]
         pcns=cmds.parentConstraint(trf,cnt) # constraints
@@ -265,7 +267,7 @@ def deleteHelpLocators (s):
     for o in ('L_Eye_LOC', 'Mouth_LOC' , s):
         delete (o)
 
-def connProj2LayTexture( projector , layerTex , chNumber  , layeredTextureDic):#chNumber=14 type( layeredTextureDic[chNumber] )
+def connProj2LayTexture( projector , layerTex , chNumber  , layeredTextureDic):#chNumber=8 type( layeredTextureDic[chNumber] )
     '''
     Conecta el projector al layeredTexture al canal X. si no esta disponible, lo conecta al proximo disponible.
     '''
@@ -276,8 +278,9 @@ def connProj2LayTexture( projector , layerTex , chNumber  , layeredTextureDic):#
     # armo alfa y conecto
     if chNumber==8: # si es extra del ojo, tengo que restar el alfa del parpado.
         minusNode = createNode ('plusMinusAverage', name=projector + '_MIN')
+        minusNode.operation.set(2)
         connectAttr ( projMultDiv.outputX , minusNode.input2D[0].input2Dx  )
-        connectAttr ( layeredTextureDic[ alphas[chNumber] ][0] + '.outAlpha' , minusNode.input2D[1].input2Dx  )
+        connectAttr ( layeredTextureDic[ 13 ][0] + '.outAlpha' , minusNode.input2D[1].input2Dx  )
         connectAttr ( minusNode.output2D.output2Dx , layerTex + '.inputs[' + str(chNumber) + '].alpha' )
     else:
         connectAttr ( projMultDiv.outputX , layerTex + '.inputs[' + str(chNumber) + '].alpha' )
@@ -313,7 +316,6 @@ def create2DFacialRig ( *args ): #del s
         headPivot    = sel.getBoundingBox().center()
         print 'sel: ' + sel
         uvNode = create2DUvNode( sel )
-
         try:
             connectAttr ( layerTex + '.outColor'  , faceShader+ '.color' )
         except:
@@ -335,7 +337,6 @@ def create2DFacialRig ( *args ): #del s
                 ccCnt = placerControl ( headSize,objs=locAim , rad = locSize , placer3d = projectorImagePlacerInput[2]  )
                 # guardo control
                 layeredTextureDic [ projectorImagePlacerInput[3]  ] = layeredTextureDic [ projectorImagePlacerInput[3]  ] + tuple( [ ccCnt ] )
-        #connectAlphas  ( layeredTextureDic )
         # conecto projection a un layer determinado o el siguiente disponible.
         for k in layeredTextureDic.keys():
             connProj2LayTexture( layeredTextureDic[k][0] , layerTex , k , layeredTextureDic)  # (nt.Projection(u'l_ojo_PRJ'), nt.LayeredTexture(u'Face_LTX'), 15)
