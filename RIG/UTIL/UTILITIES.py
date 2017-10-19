@@ -8,6 +8,32 @@ from pymel.core import *
 # Devuelve un diccionario con las carpetas y archivos del path que le
 # pases y puede buscar palabra especificas en archivo
 
+def addAttr_FromFolders( sel , path , extension , filtering ): #del archivosCarpetas
+    '''
+    Cuenta la cantidad de archivos EXTENSION filtrando por FILTERING. Agrega atributos a SEL por cada carpeta encontrada con el
+    max de cada atributo seteado a la cantidad de archivos encontrados en tal carpeta.
+    Ejemplos:
+
+        sel=ls(sl=1)[0]
+        addAttr_FromFolders( sel , 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES' , 'png' , 'proxy' )
+
+        #**************************************************
+
+        asdf = sphere()[0]
+        addAttr_FromFolders( asdf , 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES' , 'png' , 'proxy' )
+    '''
+
+    archivosCarpetas = UTILITIES.dirs_files_dic(path,extension, filtering)
+    for key in sorted( archivosCarpetas.keys() ):
+        att = key.split('\\')[-1]
+        print att
+        sel.addAttr( att , keyable=True ,  min=0 , max= len( archivosCarpetas[key])-1 , dv=0 , at='long')
+
+        # esto es lo que habiamos hablado pero no sé si es realmente conveniente. charlarlo.
+        #sel.addAttr( att+'MIRROR' , keyable=True ,  min=0 , max= len( archivosCarpetas[key])-1 , dv=0 , at='long')
+
+
+
 
 def dirs_files_dic(mypath, filterExtension, keyWord=''):
     '''
