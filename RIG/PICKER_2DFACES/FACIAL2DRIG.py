@@ -72,6 +72,7 @@ def createFacePart ( filePath , pos , layerTex , createAt , projScale ,uvNode):
     texturePlacer  = createNode ( 'place3dTexture' , n = layer + '_3DP')  # repr(texturePlacer) help(nt.Place3dTexture)
     texturePlacer.inheritsTransform.set(False)
     texturePlacer.translate.set ( createAt )
+    texturePlacer.visibility.set (0)
     connectAttr ( texturePlacer + '.worldInverseMatrix[0]' , projector + '.placementMatrix' , f = 1 )  # conecto matrices
     # asigno textura al file.
     asignText ( imgSeq , filePath )
@@ -100,6 +101,8 @@ def locChooser (layer,locs):
 def parentControls ( networkDic ) :
     parent ( networkDic[11][3][1][0] , networkDic[12][3][0][0] )
     delete ( networkDic[11][3][3][0] )
+    parent ( networkDic[8][3][1][0] , networkDic[14][3][0][0] )
+    delete ( networkDic[8][3][3][0])
     for n in range(13,15):
         parent ( networkDic[n][3][1][0] , networkDic[15][3][0][0]  )
         delete ( networkDic[n][3][3][0] )
@@ -194,7 +197,7 @@ def placerControl(headSize,objs=[],placer3d='',nameSuf='ZTR',nameTrf='TRF',nameC
         elif 'l_parpado' in obj :
             ccLook (cntl,rad*1.2,1,1)
         elif 'extras_LOC' == obj :
-            ccLook (cntl,rad*1.2,1,4)
+            ccLook (cntl,rad*0.3,1,4)
         cnt=cntl[0]
         mCircle=cntl[1]
         pcns=cmds.parentConstraint(trf,cnt) # constraints
