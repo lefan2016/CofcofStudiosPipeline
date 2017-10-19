@@ -66,7 +66,7 @@ def create2DUvNode( name ):
 def createFacePart ( filePath , pos , layerTex , createAt , projScale ,uvNode):
     layer = filePath.split('\\')[-1].split('.')[0]
     projector      = createNode ( 'projection' ,     n = layer + '_PRJ'    )
-    projector.projType.set(1)
+    projector.projType.set(3)
     imgSeq         = createNode ( 'file'       ,     n = layer + '_FILE'   )
     imgSeq.useFrameExtension.set(True)
     texturePlacer  = createNode ( 'place3dTexture' , n = layer + '_3DP')  # repr(texturePlacer) help(nt.Place3dTexture)
@@ -203,12 +203,10 @@ def placerControl(headSize,objs=[],placer3d='',nameSuf='ZTR',nameTrf='TRF',nameC
         ztrs.append (ztr)
         makeCircles.append ( renameMakeNurbCircle( mCircle ) )
         cmds.parent( obj , cnt )
-        mulDivNode = createNode ('multiplyDivide',name=newName+'_MULT' )
-        mulDivNode.input2X.set(rad)
-        mulDivNode.input2Y.set(rad)
-        mulDivNode.input2Z.set(headSize)
-        connectAttr ( cnt + '.scale' , mulDivNode+'.input1' )
-        connectAttr ( mulDivNode + '.output' , placer3d + '.scale')
+        placer3d.scaleX.set(rad)
+        placer3d.scaleY.set(rad)
+        placer3d.scaleZ.set(headSize)
+        scaleConstraint ( cnt , placer3d , mo=1 , skip='z')
         root = cmds.group(em=True,n=str(newName+'ROT'))
         roots.append (root)
         cmds.parent( ztr , root )
@@ -272,10 +270,18 @@ def connProj2LayTexture( projector , layerTex , chNumber  , layeredTextureDic):#
     Conecta el projector al layeredTexture al canal X. si no esta disponible, lo conecta al proximo disponible.
     '''
     alphas = {7:12 , 8:15 , 9:12 , 10:12 , 11:12 , 12:12 , 13:13 , 14:15 , 15:15 } # que layer usa el alfa de q layer. el 10 usa el 10, el 11 usa el 12, el 13 usa el 13, el 14 usa el 15,,,
-    projMultDiv = createNode ('multiplyDivide', name='multD')
+    projMultDiv = createNode ('multiplyDivide', name=projector + '_multD')
     connectAttr ( projector.outAlpha , projMultDiv.input1X )
     connectAttr ( layeredTextureDic[ alphas[chNumber] ][0] + '.outAlpha' , projMultDiv.input2X )
-    connectAttr ( projMultDiv.outputX , layerTex + '.inputs[' + str(chNumber) + '].alpha' )
+    # armo alfa y conecto
+    if chNumber==8: # si es extra del ojo, tengo que restar el alfa del parpado.
+        minusNode = createNode ('plusMinusAverage', name=projector + '_MIN')
+        connectAttr ( projMultDiv.outputX , minusNode.input2D[0].input2Dx  )
+        connectAttr ( layeredTextureDic[ alphas[chNumber] ][0] + '.outAlpha' , minusNode.input2D[1].input2Dx  )
+        connectAttr ( minusNode.output2D.output2Dx , layerTex + '.inputs[' + str(chNumber) + '].alpha' )
+    else:
+        connectAttr ( projMultDiv.outputX , layerTex + '.inputs[' + str(chNumber) + '].alpha' )
+    # conecto rgb
     connectAttr ( projector + '.outColor'  , layerTex + '.inputs[' + str(chNumber) + '].color' )
     return chNumber
 
