@@ -17,20 +17,21 @@ def addAttr_FromFolders( sel , path , extension , filtering ): #del archivosCarp
     Ejemplos:
 
         sel=ls(sl=1)[0]
-        addAttr_FromFolders( sel , 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES' , 'png' , 'proxy' )
+        UTILITIES.addAttr_FromFolders( sel , 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES' , 'png' , 'proxy' )
 
-        #**************************************************
 
         asdf = sphere()[0]
-        addAttr_FromFolders( asdf , 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES' , 'png' , 'proxy' )
+        UTILITIES.addAttr_FromFolders( asdf , 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES' , 'png' , 'proxy' )
+
+
     '''
 
-    archivosCarpetas = dirs_files_dic(path,extension, filtering)
+    archivosCarpetas = dirs_files_dic(path , extension, filtering )
     for key in sorted( archivosCarpetas.keys() ):
-        att = key.split('\\')[-1]
-        print att
-        sel.addAttr( att , keyable=True ,  min=0 , max= len( archivosCarpetas[key])-1 , dv=0 , at='long')
-
+        att = key.split('\\')[-1]   # spliteo nombre del atributo
+        cantidadArchivos = len( archivosCarpetas[key])
+        offset           =  (1,0)[cantidadArchivos==0]
+        sel.addAttr( att , keyable=True ,  min=0 , max = cantidadArchivos - offset  , dv=0 , at='long')
         # esto es lo que habiamos hablado pero no sé si es realmente conveniente. charlarlo.
         #sel.addAttr( att+'MIRROR' , keyable=True ,  min=0 , max= len( archivosCarpetas[key])-1 , dv=0 , at='long')
 
