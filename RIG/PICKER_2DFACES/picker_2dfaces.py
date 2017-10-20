@@ -29,6 +29,7 @@ def getFrame(val=000, attr='', ctr='C_head_01_CTRL'):
 		mods = cmds.getModifiers()
 		# pregunto si se preciono y es shift y agrego a la seleccion
 		if (mods & 1) > 0:
+			print attr
 			cmds.setAttr(ctr + '.' + str(attr), val)
 		# de lo contrario solo selecciono
 		else:
@@ -80,4 +81,4 @@ nameSpace=''
 mypath = 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES'
 directorios = UTILITIES.dirs_files_dic(mypath, 'png', 'proxy')
 print directorios
-UI(name, directorios, nameSpace,60)
+UI(name, directorios, nameSpace,35)
