@@ -10,9 +10,10 @@ except (RuntimeError, TypeError, NameError,IOError):
     print 'NO SE PUDO IMPORTAR EL MODULO'
 '''
 class attrs():
-    __init__():
+    def __init__():
         self.key=string
         self.value=None
+
 
 def addAttrString(objs=None,attrName=''):
     for obj in objs:
@@ -21,7 +22,7 @@ def addAttrString(objs=None,attrName=''):
         else:
             print 'Ya existe el atributo '+attr+' en '+obj
 
-def editAttrString(objs=None,attrName='',newText='editame'):
+def editAttrString(objs=None,typeAttr,attrName='',newText='editame'):
     for obj in objs:
         if cmds.attributeQuery(attrName, node=obj, exists=1):
             if cmds.getAttr(obj+'.'+attrName,type=True)=='string':
