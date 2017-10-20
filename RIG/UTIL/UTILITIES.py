@@ -10,18 +10,24 @@ from pymel.core import *
 # Devuelve un diccionario con las carpetas y archivos del path que le
 # pases y puede buscar palabra especificas en archivo
 
-def addAttr_FromFolders( sel , path , extension , filtering ): #del archivosCarpetas
+def addAttr_FromFolders( sel , path , extension , filtering , contarArchivos): #del archivosCarpetas
     '''
-    Cuenta la cantidad de archivos EXTENSION filtrando por FILTERING. Agrega atributos a SEL por cada carpeta encontrada con el
-    max de cada atributo seteado a la cantidad de archivos encontrados en tal carpeta.
+    Cuenta la cantidad de archivos EXTENSION filtrando por FILTERING. Agrega atributos a SEL por cada carpeta encontrada.
+    Si contarArchivos == 0, el maximo de cada atributo es seteado a la cantidad de archivos encontrada en esa carpeta.
+    Si contarArchivos != 0, el maximo de cada atributo es seteado arbitrariamente al valor de contarArchivos.
+
     Ejemplos:
 
-        sel=ls(sl=1)[0]
-        UTILITIES.addAttr_FromFolders( sel , 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES' , 'png' , 'proxy' )
+        # asigna a los atributos 31 como maximo.
 
+        sel=ls(sl=1)[0]
+        UTILITIES.addAttr_FromFolders( sel , 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES' , 'png' , 'proxy', 31 )
+
+
+        # asigna a los atributos la cantidad de archivos encontrada en la carpeta como maximo.
 
         asdf = sphere()[0]
-        UTILITIES.addAttr_FromFolders( asdf , 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES' , 'png' , 'proxy' )
+        UTILITIES.addAttr_FromFolders( asdf , 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES' , 'png' , 'proxy', 0 )
 
 
     '''
@@ -29,9 +35,14 @@ def addAttr_FromFolders( sel , path , extension , filtering ): #del archivosCarp
     archivosCarpetas = dirs_files_dic(path , extension, filtering )
     for key in sorted( archivosCarpetas.keys() ):
         att = key.split('\\')[-1]   # spliteo nombre del atributo
-        cantidadArchivos = len( archivosCarpetas[key])
-        offset           =  (1,0)[cantidadArchivos==0]
-        sel.addAttr( att , keyable=True ,  min=0 , max = cantidadArchivos - offset  , dv=0 , at='long')
+
+        if not contarArchivos :
+            cantidadArchivos = len( archivosCarpetas[key])
+            offset           =  (1,0)[cantidadArchivos==0]
+            frames = cantidadArchivos - offset
+        else:
+            frames = contarArchivos
+        sel.addAttr( att , keyable=True ,  min=0 , max = frames  , dv=0 , at='long')
         # esto es lo que habiamos hablado pero no sé si es realmente conveniente. charlarlo.
         #sel.addAttr( att+'MIRROR' , keyable=True ,  min=0 , max= len( archivosCarpetas[key])-1 , dv=0 , at='long')
 
