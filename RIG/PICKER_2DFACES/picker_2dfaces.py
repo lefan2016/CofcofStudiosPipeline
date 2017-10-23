@@ -1,7 +1,5 @@
 # @Date:   2017-10-10T11:13:42-03:00
-# @Last modified time: 2017-10-21T04:28:50-03:00
-
-
+# @Last modified time: 2017-10-23T01:20:37-03:00
 
 import random
 import re
@@ -27,19 +25,34 @@ cabezaControl = 'L_EYE_PUPILA_CNT'
 mypath = 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES'
 directorios = UTILITIES.dirs_files_dic(mypath, 'png', 'proxy')
 
-
 def setKeyNow(obj='L_EYE_PUPILA_CNT',attr='r_ojo'):
     currentTimeX=cmds.currentTime( query=True )
     cmds.setKeyframe( obj, attribute=attr, t=[currentTimeX,currentTimeX] )
     cmds.keyTangent(obj, at=attr, itt='linear', ott='linear')
-    print 'KEY en :',obj,attr
+    print 'KEY en: ',obj,attr
+#Ocultara el layer en maya.
+def displayLayer(attr='l_ojo', ctr='L_EYE_PUPILA_CNT', *args):
+
+    attr=attr+'_VIS'
+    print 'DisplayLayer de: ',attr, ctr
+    if cmds.objExists(ctr + '.' + attr):
+        currentVal = cmds.getAttr(ctr + '.' + attr)
+        if currentVal:
+            cmds.setAttr(ctr + '.' + attr, 0)
+            setKeyNow(ctr,attr)
+            print 'Capa apagada y key'
+        else:
+            cmds.setAttr(ctr + '.' + attr, 1)
+            setKeyNow(ctr,attr)
+            print 'Capa prendinda y key'
+
 
 def getFrame(val=0, attr='r_ojo', ctr='L_EYE_PUPILA_CNT', *args):
 
     # Con esta funcion pregunto si existe el control que le estoy pasando por
     # argumento
     if cmds.objExists(ctr + '.' + attr):
-        print ctr,attr, val
+        print 'Existe el control',ctr,attr, val
         currentVal = cmds.getAttr(ctr + '.' + attr)
         # Devuelve el evento que preciono
         mods = cmds.getModifiers()
@@ -62,6 +75,7 @@ def getFrame(val=0, attr='r_ojo', ctr='L_EYE_PUPILA_CNT', *args):
                 cmds.warning('No contiene el otro lado de la misma imagen nombrada L_ o R_')
         # de lo contrario solo selecciono
         else:
+            print 'No se apreto ningun otro boton'
             cmds.setAttr(ctr + '.' + attr, val)
     else:
         cmds.warning('No existe el atributo o variable '+attr+', en el control '+ctr+ ' o necesita de un namespace.')
@@ -99,7 +113,9 @@ def botonesUI(directorios='', nameSpace='',sizeButtons=100,parents='',controlAtt
 
         frameIn=cmds.frameLayout(label=sideFace.upper(),collapsable=True,parent=cl1,bgc=color1)
         cl2=cmds.columnLayout( cal='right',cat=['both',0], columnOffset = ['both', 0] ,  adjustableColumn=True , parent = frameIn )
-        cmds.button(label='DisplayLayer')
+
+        cmds.button(label='DisplayLayer', command= partial(displayLayer,sideFace,controlAttributos))
+
         expres=cmds.frameLayout(label='Expresiones',collapsable=True,collapse=colaps)
         cmds.rowColumnLayout( numberOfRows=4,bgc=color2)
         # Para diferenciar las carpeas o frames le pongo diferentes colores
@@ -116,7 +132,7 @@ def botonesUI(directorios='', nameSpace='',sizeButtons=100,parents='',controlAtt
             # Agrego el boton y la funcion, con el nombre del value del
             # diccionario
             cmds.symbolButton(ctrl, image=key +'\\'+ctrl, width=sizeButtons, height=sizeButtons, backgroundColor=color2 ,
-                              annotation='( SHIFT+CLICK suma seleccion. )', command=partial(getFrame, val, sideFace, controlAttributos))
+                              annotation='( SHIFT+CLICK setea la misma cara opuesta. )', command=partial(getFrame, val, sideFace, controlAttributos))
 
 
 def UI(charName='MILO', directorios={}, nameSpace='', sizeButtons=60,controlAttributo='L_EYE_PUPILA_CNT'):
