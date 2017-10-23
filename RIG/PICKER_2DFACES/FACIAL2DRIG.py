@@ -102,14 +102,14 @@ def createAimSystem ( systemName , follower , target ,  headBBoxCenter ):
 	# creo transforms para el locUp
 	upLocGroup        = upLocGrpMaker ( locAimUp , headBBoxCenter )
 	# creo transforms para el target
-	targetGroup = customTransforms ( locAim , ['ZTR','TRF','CNT']) # creo transforms para aim y orient constraints
+	targetGroup = customTransforms ( locAim , ['ZTR','OFF','TRF']) # creo transforms para aim  constraints
 
 	# parentando grupo del locUp al grupo root
 	parent ( upLocGroup[0] , locUpGrp_ )
 	# parentando el locator target al transform CNT
-	parent (locAim , targetGroup[1])
+	parent (locAim , targetGroup[2])
 
-	# parentando el locator target al grupo de controles.
+	# parentando el ztr de locator target al grupo de controles.
 	parent (targetGroup[0] , controlGrp_)
 	# parentando a la carpeta general del sistema.
 	parent ( controlGrp_ , locUpGrp_ , ztrOffTrf3DPlacer[0] , systemGrp_ )
@@ -358,8 +358,11 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 		ccLook (cntl,rad*0.3,1,4)
 	move2(targetLoc, cnt) 																		# llevo el cnt al locator del aimConstraint
 	targetLoc_parent = listRelatives( targetLoc.name() , parent=1, fullPath=1 , pa=1)[0]		# query del parent del locator del aimConstraint
+	print 'targetLoc_parent' , targetLoc_parent
+	print 'targetLoc.name' , targetLoc.name()
+
 	parent( cnt , targetLoc_parent )															# cnt ahora es hijo del parent del locator
-	parent( targetLoc , cnt )																	# cnt ahora es hijo del parent del locator
+	parent( targetLoc , cnt )																	# el targetLoc ahora es hijo del cnt
 	maya.mel.eval ('DeleteHistory ' + cnt.name() )														# borro history
 	placer3d.scaleX.set(rad)																	# escalas del 3dTexturePlacer
 	placer3d.scaleY.set(rad)
@@ -446,12 +449,12 @@ def create2DFacialRig ( *args ): #del s
                 # creo sistema Aim. Argumentos: layer, nombreDelPlacer , locatorParaUbicar.translate
                 locAim = createAimSystem ( layer , projectorImagePlacerInput[2] , loc , headCenter )
                 # creo control para el Aim
-                #ccCnt = placerControl ( headSize, locAim[0] , locAim[1] , projectorImagePlacerInput[2] , rad = locSize  )
+                ccCnt = placerControl ( headSize, locAim[0] , locAim[1] , projectorImagePlacerInput[2] , rad = locSize  )
                 # guardo control
-                #layeredTextureDic [ projectorImagePlacerInput[3]  ] = layeredTextureDic [ projectorImagePlacerInput[3]  ] + tuple( [ ccCnt ] )
+                layeredTextureDic [ projectorImagePlacerInput[3]  ] = layeredTextureDic [ projectorImagePlacerInput[3]  ] + tuple( [ ccCnt ] )
         # conecto projection a un layer determinado o el siguiente disponible.
-        #for k in layeredTextureDic.keys():
-        #    connProj2LayTexture( layeredTextureDic[k][0] , layerTex , k , layeredTextureDic)
+        for k in layeredTextureDic.keys():
+            connProj2LayTexture( layeredTextureDic[k][0] , layerTex , k , layeredTextureDic)
         #deleteHelpLocators (scaleRef)
     else:
         warning ( '  Selection is null or multiple. Select head mesh ' )
