@@ -1,3 +1,8 @@
+# @Date:   2017-10-21T04:20:53-03:00
+# @Last modified time: 2017-10-23T12:23:36-03:00
+
+
+
 # -*- encoding: utf-8 -*-
 
 from os import listdir
@@ -33,38 +38,43 @@ def addAttr_FromFolders( sel , path , extension , filtering , contarArchivos): #
     '''
 
     archivosCarpetas = dirs_files_dic(path , extension, filtering )
-    for key in sorted( archivosCarpetas.keys() ):
-        att = key.split('\\')[-1]   # spliteo nombre del atributo
+    for keys, value in sorted( archivosCarpetas.items() ):
+        for f in archivosCarpetas[key]:
+            att = key.split('\\')[-1]   # spliteo nombre del atributo
 
-        if not contarArchivos :
-            cantidadArchivos = len( archivosCarpetas[key])
-            offset           =  (1,0)[cantidadArchivos==0]
-            frames = cantidadArchivos - offset
-        else:
-            frames = contarArchivos
-        sel.addAttr( att , keyable=True ,  min=0 , max = frames  , dv=0 , at='long')
-        # esto es lo que habiamos hablado pero no sé si es realmente conveniente. charlarlo.
-        #sel.addAttr( att+'MIRROR' , keyable=True ,  min=0 , max= len( archivosCarpetas[key])-1 , dv=0 , at='long')
+            if not contarArchivos :
+                cantidadArchivos = len( archivosCarpetas[key])
+                offset           =  (1,0)[cantidadArchivos==0]
+                frames = cantidadArchivos - offset
+            else:
+                frames = contarArchivos
+            sel.addAttr( att , keyable=True ,  min=0 , max = frames  , dv=0 , at='long')
+            # esto es lo que habiamos hablado pero no se si es realmente conveniente. charlarlo.
+        #sel.cmds.addAttr( ,ln="l_ojo_VIS", at="enum", en="off:on:")
 
 
 
 
-def dirs_files_dic(mypath, filterExtension, keyWord=''):
+def dirs_files_dic(mypath, filterExtension, keyWord='',sort=True):
     '''
     type (string) mypath: Ruta de carpeta.
     type (string) filterExtension: contiene el tipo de extencion a buscar.
     type (string) keyWord: enlista archivos si contiene la palabra dentro de keyWord.
+    type (bool) sort: Ordena la lista si es true.
     Returns a dic { Dir : files in Dir }. A dictonary with subdirectories and files inside them from a directory input.
     Example:
         dirs_files_dic('O:\EMPRESAS\RIG_FACE2D\ScriptingGuideRig\Maps','png', 'proxy')
-
-
     '''
+
     returnDic = {}
     dirs = [f for f in listdir(mypath) if not isfile(join(mypath, f))]
+    if sort:
+        dirs=sorted(dirs)
     for subdir in dirs:
         subdir = mypath + '\\' + subdir
         onlyfiles = [f for f in listdir(subdir) if ( isfile(join(subdir, f)) and os.path.splitext(f)[1] == '.' + filterExtension) and keyWord in f]
+        if sort:
+            onlyfiles=sorted(onlyfiles)
         if not keyWord=='':
             fileText = []
             for f in onlyfiles:
