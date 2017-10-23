@@ -1,35 +1,29 @@
+# -*- coding: utf-8 -*-
 # @Date:   2017-10-10T11:13:42-03:00
-# @Last modified time: 2017-10-23T12:34:26-03:00
-
+# @Last modified time: 2017-10-23T16:50:00-03:00
 import random
 import re
 import sys
 from functools import partial
-
+import pymel.core as pm
 import maya.cmds as cmds
-
 path = r'F:\Repositores\GitHub\CofcofStudiosPipeline\RIG\UTIL'
-path2 = r'F:\Repositores\GitHub\CofcofStudiosPipeline\RIG\PICKER_2DFACES'
-if not (path or path2) in sys.path:
+
+if not path in sys.path:
     sys.path.append(path)
-    sys.path.append(path2)
 try:
     import UTILITIES
     reload(UTILITIES)
 except (RuntimeError, TypeError, NameError, IOError):
     print 'NO SE PUDO IMPORTAR EL MODULO'
 
-name = 'MILO'
-nameSpace = ''
-cabezaControl = 'L_EYE_PUPILA_CNT'
-mypath = 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES'
-directorios = UTILITIES.dirs_files_dic(mypath, 'png', 'proxy')
 
 def setKeyNow(obj='L_EYE_PUPILA_CNT',attr='r_ojo'):
     currentTimeX=cmds.currentTime( query=True )
     cmds.setKeyframe( obj, attribute=attr, t=[currentTimeX,currentTimeX] )
     cmds.keyTangent(obj, at=attr, itt='linear', ott='linear')
     print 'KEY en: ',obj,attr
+
 #Ocultara el layer en maya.
 def displayLayer(attr='l_ojo', ctr='L_EYE_PUPILA_CNT', *args):
 
@@ -48,7 +42,6 @@ def displayLayer(attr='l_ojo', ctr='L_EYE_PUPILA_CNT', *args):
 
 
 def getFrame(val=0, attr='r_ojo', ctr='L_EYE_PUPILA_CNT', *args):
-
     # Con esta funcion pregunto si existe el control que le estoy pasando por
     # argumento
     if cmds.objExists(ctr + '.' + attr):
@@ -149,5 +142,36 @@ def UI(charName='MILO', directorios={}, nameSpace='', sizeButtons=60,controlAttr
                           retain=False,  dtm=('right', 1))
     botonesUI( directorios, nameSpace,sizeButtons,WorkspaceName,controlAttributo)
 
-# llamo a la funcion la cual ejecuta todo el resto.
-UI(name, directorios, nameSpace,30,cabezaControl)
+def Picker2D(obj,path='c:/coco',rangeV=30,nameUI='MILO',namespace='',sizeButtons=30,ext='png',keyWord='proxy'):
+    if namespace:#si tiene namespace se le agrega al nombre
+        obj=namespace+':'+obj
+    #Con esta funcion creo los atributos en el objeto indicado
+    UTILITIES.addAttr_FromFolders(obj, path, ext , keyWord ,rangeV)
+
+    #Con esta funcion creo la interface dependiendo la cantidad de carpetas y archivos en FACES folder.
+    directorios = UTILITIES.dirs_files_dic(path, ext, keyWord)
+    #llamo a la funcion la cual ejecuta todo el resto.
+    UI(nameUI, directorios, nameSpace,30,obj)
+
+'''
+#ASI SE UTILIZA ESTA INTERFACE
+import maya.cmds as cmds
+import pymel.core as pm
+path = r'F:\Repositores\GitHub\CofcofStudiosPipeline\RIG\PICKER_2DFACES'
+if not path in sys.path:
+    sys.path.append(path)
+try:
+    import picker_2dfaces#Modulo necesario para que funcione todo
+    reload(picker_2dfaces)
+except (RuntimeError, TypeError, NameError, IOError):
+    print 'NO SE PUDO IMPORTAR EL MODULO'
+
+nameUI = 'MILO' #Nombre que utilizara la interface.
+nameSpace = 'milo1' #NameSpace del personaje.
+obj='C_head_01_CTRL' #objeto que contiene los atributos animables.
+path = 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES' #Carpeta ordenada donde se contiene los arhivos proxys.
+rangeVariable=31 #Cantidad maxima de archivos que contiene una carpeta de proxy.
+sizeButtons=30 #Tamaño de botonera
+
+picker_2dfaces.Picker2D(obj,path,rangeVariable,nameUI,nameSpace,sizeButtons)#Funcion que contiene toda la programacion necesaria para la UI
+'''
