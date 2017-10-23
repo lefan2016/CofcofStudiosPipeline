@@ -1,5 +1,5 @@
 # @Date:   2017-10-21T04:20:53-03:00
-# @Last modified time: 2017-10-23T12:23:36-03:00
+# @Last modified time: 2017-10-23T16:48:36-03:00
 
 
 
@@ -9,70 +9,59 @@ from os import listdir
 from os.path import isfile, join
 
 import maya.cmds as cmds
-from pymel.core import *
+import pymel.core as pm
 
 
 # Devuelve un diccionario con las carpetas y archivos del path que le
 # pases y puede buscar palabra especificas en archivo
 
-def addAttr_FromFolders( sel , path , extension , filtering , contarArchivos): #del archivosCarpetas
+def addAttr_FromFolders( obj , path , ext , keyWord , rangeVariable=31): #del archivosCarpetas
     '''
+    need pymel
     Cuenta la cantidad de archivos EXTENSION filtrando por FILTERING. Agrega atributos a SEL por cada carpeta encontrada.
-    Si contarArchivos == 0, el maximo de cada atributo es seteado a la cantidad de archivos encontrada en esa carpeta.
-    Si contarArchivos != 0, el maximo de cada atributo es seteado arbitrariamente al valor de contarArchivos.
-
+    type (object) obj: objeto que quieres aplicar los atributos.
+    type (string) path: contiene el tipo de extencion a buscar.
+    type (string) ext: enlista archivos si contiene la palabra dentro de keyWord.
+    type (string) keyWord: enlista archivos si contiene la palabra dentro de keyWord.
+    type (int) rangeVariable: cantidad de rango de la variable int.
     Ejemplos:
-
         # asigna a los atributos 31 como maximo.
-
-        sel=ls(sl=1)[0]
-        UTILITIES.addAttr_FromFolders( sel , 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES' , 'png' , 'proxy', 31 )
-
-
-        # asigna a los atributos la cantidad de archivos encontrada en la carpeta como maximo.
-
-        asdf = sphere()[0]
-        UTILITIES.addAttr_FromFolders( asdf , 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES' , 'png' , 'proxy', 0 )
-
-
+        object=ls(sl=1)[0]
+        UTILITIES.addAttr_FromFolders( object , 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES' , 'png' , 'proxy', 31 )
     '''
-
-    archivosCarpetas = dirs_files_dic(path , extension, filtering )
-    for keys, value in sorted( archivosCarpetas.items() ):
-        for f in archivosCarpetas[key]:
-            att = key.split('\\')[-1]   # spliteo nombre del atributo
-
-            if not contarArchivos :
-                cantidadArchivos = len( archivosCarpetas[key])
-                offset           =  (1,0)[cantidadArchivos==0]
-                frames = cantidadArchivos - offset
+    archivosCarpetas = dirs_files_dic(path , ext, keyWord )
+    for keys, value in archivosCarpetas.items():
+            if value:
+                att = keys.split('\\')[-1]# spliteo nombre del atributo
+                if not cmds.objExists(obj+'.'+att+'_VIS') and not cmds.objExists(obj+'.'+att):
+                    cmds.addAttr(obj, ln=att+"_VIS",keyable=True, at="enum", en="off:on:",dv=1)
+                    cmds.addAttr(obj, ln=att, keyable=True ,  min=0 , max = rangeVariable  , dv=0 , at='long')
+                else:
+                    print 'Ya tiene un atributo en ',obj,' llamado ', att+'_VIS'
             else:
-                frames = contarArchivos
-            sel.addAttr( att , keyable=True ,  min=0 , max = frames  , dv=0 , at='long')
-            # esto es lo que habiamos hablado pero no se si es realmente conveniente. charlarlo.
-        #sel.cmds.addAttr( ,ln="l_ojo_VIS", at="enum", en="off:on:")
+                print 'No existe archivos png en ',keys
+                cmds.warning('No existe archivos png en ',keys)
 
 
 
 
-def dirs_files_dic(mypath, filterExtension, keyWord='',sort=True):
+def dirs_files_dic(mypath, ext, keyWord='',sort=True):
     '''
     type (string) mypath: Ruta de carpeta.
-    type (string) filterExtension: contiene el tipo de extencion a buscar.
+    type (string) ext: contiene el tipo de extencion a buscar.
     type (string) keyWord: enlista archivos si contiene la palabra dentro de keyWord.
     type (bool) sort: Ordena la lista si es true.
     Returns a dic { Dir : files in Dir }. A dictonary with subdirectories and files inside them from a directory input.
     Example:
         dirs_files_dic('O:\EMPRESAS\RIG_FACE2D\ScriptingGuideRig\Maps','png', 'proxy')
     '''
-
     returnDic = {}
     dirs = [f for f in listdir(mypath) if not isfile(join(mypath, f))]
     if sort:
         dirs=sorted(dirs)
     for subdir in dirs:
         subdir = mypath + '\\' + subdir
-        onlyfiles = [f for f in listdir(subdir) if ( isfile(join(subdir, f)) and os.path.splitext(f)[1] == '.' + filterExtension) and keyWord in f]
+        onlyfiles = [f for f in listdir(subdir) if ( isfile(join(subdir, f)) and os.path.splitext(f)[1] == '.' + ext) and keyWord in f]
         if sort:
             onlyfiles=sorted(onlyfiles)
         if not keyWord=='':
@@ -92,8 +81,8 @@ def createIfNeeded( node_Name , node_Type ):
     Returns node_Name
     Example:
     '''
-    if not objExists ( node_Name ) :
-        nodeRet  =   createNode ( node_Type , n = node_Name )
+    if not pm.objExists ( node_Name ) :
+        nodeRet  =   pm.createNode ( node_Type , n = node_Name )
     else:
         nodeRet   = node_Name
     return nodeRet
