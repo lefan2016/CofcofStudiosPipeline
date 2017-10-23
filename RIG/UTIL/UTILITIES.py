@@ -1,13 +1,12 @@
 # @Date:   2017-10-21T04:20:53-03:00
-# @Last modified time: 2017-10-23T16:48:36-03:00
+# @Last modified time: 2017-10-23T17:07:14-03:00
 
 
 
 # -*- encoding: utf-8 -*-
 
-from os import listdir
+import os
 from os.path import isfile, join
-
 import maya.cmds as cmds
 import pymel.core as pm
 
@@ -56,12 +55,12 @@ def dirs_files_dic(mypath, ext, keyWord='',sort=True):
         dirs_files_dic('O:\EMPRESAS\RIG_FACE2D\ScriptingGuideRig\Maps','png', 'proxy')
     '''
     returnDic = {}
-    dirs = [f for f in listdir(mypath) if not isfile(join(mypath, f))]
+    dirs = [f for f in os.listdir(mypath) if not isfile(join(mypath, f))]
     if sort:
         dirs=sorted(dirs)
     for subdir in dirs:
         subdir = mypath + '\\' + subdir
-        onlyfiles = [f for f in listdir(subdir) if ( isfile(join(subdir, f)) and os.path.splitext(f)[1] == '.' + ext) and keyWord in f]
+        onlyfiles = [f for f in os.listdir(subdir) if ( isfile(join(subdir, f)) and os.path.splitext(f)[1] == '.' + ext) and keyWord in f]
         if sort:
             onlyfiles=sorted(onlyfiles)
         if not keyWord=='':
