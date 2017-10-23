@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # @Date:   2017-10-10T11:13:42-03:00
-# @Last modified time: 2017-10-23T16:50:00-03:00
+# @Last modified time: 2017-10-23T17:10:34-03:00
 import random
 import re
 import sys
@@ -138,7 +138,7 @@ def UI(charName='MILO', directorios={}, nameSpace='', sizeButtons=60,controlAttr
         cmds.deleteUI(WorkspaceName)
         print 'Se borro', WorkspaceName
     # ejecuto funcion de interfas y la guardo en un dock
-    cmds.workspaceControl(WorkspaceName, initialHeight=500,initialWidth=500, floating=False,
+    cmds.workspaceControl(WorkspaceName, initialHeight=600,initialWidth=520, floating=True,
                           retain=False,  dtm=('right', 1))
     botonesUI( directorios, nameSpace,sizeButtons,WorkspaceName,controlAttributo)
 
@@ -151,7 +151,7 @@ def Picker2D(obj,path='c:/coco',rangeV=30,nameUI='MILO',namespace='',sizeButtons
     #Con esta funcion creo la interface dependiendo la cantidad de carpetas y archivos en FACES folder.
     directorios = UTILITIES.dirs_files_dic(path, ext, keyWord)
     #llamo a la funcion la cual ejecuta todo el resto.
-    UI(nameUI, directorios, nameSpace,30,obj)
+    UI(nameUI, directorios, namespace,30,obj)
 
 '''
 #ASI SE UTILIZA ESTA INTERFACE
