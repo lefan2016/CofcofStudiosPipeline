@@ -71,15 +71,16 @@ def customTransforms ( obj , trfs=[] ):
 def createAimSystem ( systemName , follower , target ,  headBBoxCenter ):
 	'''
 	crea sistema de aim con la posibilidad de twist.
-	systemName		: nombre del sistema.
-	follower		: objeto que mira al target.
-	target			: objeto al que mira el follower.
-	headBBoxCenter	: centro del BoundingBox
+	systemName		<String>: nombre del sistema.
+	follower		<Object>: objeto que mira al target.
+	target			<Object>: objeto al que mira el follower.
+	headBBoxCenter	<Point> : centro del BoundingBox
 
 	El RETURN puede ser utilizado para conectar la rotacionZ del upLocatorGrp a algun atributo.
 	RETURN
-	locAim 		: locator al que mira el aimConstraint.
-	aimConst 	: nodo de aimConstraint.
+	locAim 			<spaceLocator>	: locator al que mira el aimConstraint.
+	aimConst 		<aimConstraint>	: nodo de aimConstraint.
+	targetGroup[1]	<transform>		: transform OFF del controlador.
 	'''
 	systemGrp_  = group ( em=1 , n = systemName + '_AimSystem_GRP' )
 	controlGrp_ = group ( em=1 , n = systemName + '_Controls_GRP')
@@ -112,7 +113,7 @@ def createAimSystem ( systemName , follower , target ,  headBBoxCenter ):
 	# constraint : projection mira al locator target
 	aimConst=aimConstraint( locAim ,ztrOffTrf3DPlacer[1],mo=0,n=locAim.name()+'_AIMC',aim=[0,0,1],wut='object',wuo=upLocGroup[1] )
 	move2 ( target , targetGroup[1] )
-	return locAim , aimConst
+	return locAim , aimConst , targetGroup[1]
 
 def constraintObj2Cnt (sel,cnts):
     for o in sel:
@@ -372,7 +373,6 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 	placer3d.scaleX.set(rad)																	# escalas del 3dTexturePlacer
 	placer3d.scaleY.set(rad)
 	placer3d.scaleZ.set(headSize)
-	connectAttr( cnt.rotateZ , aimConsNode.offsetZ )
 	scaleConstraint ( cnt , placer3d , mo=1 , skip='z')         								# el cnt controla scaleXY solamente
 	# lock hide de rotate X  y rotate Y
 	setAttr ( cnt.rotateX , l = 1 , k = 0 )
@@ -406,6 +406,16 @@ def connProj2LayTexture( projector , layerTex , chNumber  , layeredTextureDic):
     # conecto rgb
 	connectAttr ( projector + '.outColor'  , layerTex + '.inputs[' + str(chNumber) + '].color' )
 	return chNumber
+
+def parentingControls(layeredTextureDic):
+	'''
+	Emparenta los transforms de los controladores para que puedan heredar transformaciones.
+	'''
+	#emparento pupila, parpados y extras del ojo al fondo del ojo.
+	parent( layeredTextureDic[8][3] , layeredTextureDic[13][3] , layeredTextureDic[14][3] , layeredTextureDic[15][3] , layeredTextureDic[16][3] )
+	#emparento lengua, diente sup , diente inf , extras (FALTA) a la boca.
+	parent( layeredTextureDic[9][3] , layeredTextureDic[10][3] , layeredTextureDic[11][3] , layeredTextureDic[12][3] )
+
 
 ####### ####### ####### ####### ####### ####### ####### #######
 
@@ -451,11 +461,21 @@ def create2DFacialRig ( *args ): #del s
                 # creo control para el Aim
                 ccCnt = placerControl ( headSize, locAim[0] , locAim[1] , projectorImagePlacerInput[2] , rad = locSize  )
                 # guardo control
-                layeredTextureDic [ projectorImagePlacerInput[3]  ] = layeredTextureDic [ projectorImagePlacerInput[3]  ] + tuple( [ ccCnt ] )
-        # conecto projection a un layer determinado o el siguiente disponible.
+                layeredTextureDic [ projectorImagePlacerInput[3]  ] = layeredTextureDic [ projectorImagePlacerInput[3]  ] + tuple( [ ccCnt ]) + tuple ([locAim[2]])
+		print '\nDiccionario:\n'
+		# conecto projection a un layer determinado o el siguiente disponible.
         for k in layeredTextureDic.keys():
+            print k, layeredTextureDic[k]
             connProj2LayTexture( layeredTextureDic[k][0] , layerTex , k , layeredTextureDic)
-        #deleteHelpLocators (scaleRef)
+        deleteHelpLocators (scaleRef)
+        parentingControls(layeredTextureDic)
+
+
+
+
+
+
+
     else:
         warning ( '  Selection is null or multiple. Select head mesh ' )
 
