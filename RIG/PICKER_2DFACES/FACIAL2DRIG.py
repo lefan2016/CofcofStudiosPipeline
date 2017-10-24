@@ -206,7 +206,7 @@ def locChooser (layer,locs):
     '''
     Determina cuál locator se va a usar para crear los controles.
     '''
-    if layer in ('l_ojo' , 'l_pupila' , 'l_parpado' , 'l_parpado_inf' , 'extras'):
+    if layer in ('l_ojo' , 'l_pupila' , 'l_parpado_sup' , 'l_parpado_inf' , 'extras'):
         choosenLoc = locs[0]
     else:
         choosenLoc = locs[1]
@@ -317,8 +317,11 @@ def parentControls ( networkDic ) :
         parent ( networkDic[n][3][1][0] , networkDic[15][3][0][0]  )
         delete ( networkDic[n][3][3][0] )
 
+def changeOverrideColor ( cnt , color ):
+	cnt.getShape().overrideEnabled.set( True )
+	cnt.getShape().overrideColor.set( color )
 
-# -*- encoding: utf-8 -*-
+
 def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' , nameTrf='TRF' , nameCNT='CNT' , rad=2 ): #objs=texturePlacer
 	'''
 	headSize <integer> : tamaño de cabeza.
@@ -345,35 +348,33 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 	cnt=circle(radius=rad,nr=(0,0,1),name=str(newName + nameCNT))[0] 		# creo cnt
 
 	if 'l_ojo' in targetLoc.name()  or 'boca' in targetLoc.name() :                             # tamaños  y formas para cada parte de la cara
-		print '		OJO'
-		ccLook (cnt,rad,3,5)
+		ccLook( cnt , rad , 3 , 5 )
+		changeOverrideColor ( cnt , 13 )
 	elif 'l_pupila' in targetLoc.name()  or 'lengua' in targetLoc.name() :
-		print '		PUPILA'
 		ccLook (cnt,rad*0.6,3,5)
+		changeOverrideColor ( cnt , 17 )
 	elif 'l_parpado_inf' in targetLoc.name()  :
-		print '		PARPADO INFERIOR'
 		ccLook (cnt,rad*1.2,3,5)
-		cnt.cv[0].setPosition([-10,-2,0],'preTransform')
-		cnt.cv[1].setPosition([0,-6,0],'preTransform')
-		cnt.cv[2].setPosition([10,-2,0],'preTransform')
-		cnt.cv[3].setPosition([-1,-6,0],'preTransform')
-		cnt.cv[4].setPosition([1,-6,0],'preTransform')
-	elif 'l_parpado' in targetLoc.name()  :
-		print '		PARPADO SUPERIOR'
-		ccLook (cnt,rad*1.2,3,5)
-		cnt.cv[3].setPosition([-1,8,0],'preTransform')
-		cnt.cv[4].setPosition([1,8,0],'preTransform')
+		changeOverrideColor ( cnt , 6 )
+		cnt.cv[0].setPosition([-5,-2,0],'preTransform')
+		cnt.cv[1].setPosition([0,-3,0],'preTransform')
+		cnt.cv[2].setPosition([5,-2,0],'preTransform')
+		cnt.cv[4].setPosition([-5,-6,0],'preTransform')
+		cnt.cv[3].setPosition([5,-6,0],'preTransform')
+	elif 'l_parpado_sup' in targetLoc.name()  :
+		ccLook ( cnt , rad * 1.2 , 3 , 5 )
+		changeOverrideColor ( cnt , 18 )
+		cnt.cv[3].setPosition([-1,3,0],'preTransform')
+		cnt.cv[4].setPosition([1,3,0],'preTransform')
 	elif 'extras' in targetLoc.name()  :
-		print '		CONTROL EXTRA'
 		ccLook (cnt,rad*0.3,1,4)
 	elif 'a_diente' in targetLoc.name()  :
-		print '		DIENTES SUP'
 		ccLook (cnt,rad*0.3,1,1)
+		changeOverrideColor ( cnt , 18 )
 		cnt.getShape().inputs()[0].centerY.set(5)
-
 	elif 'b_diente' in targetLoc.name()  :
-		print '		DIENTES INF'
 		ccLook (cnt,rad*0.3,1,1)
+		changeOverrideColor ( cnt , 6 )
 		cnt.getShape().inputs()[0].centerY.set(-5)
 		cnt.getShape().inputs()[0].normalZ.set(-13)
 
@@ -446,7 +447,7 @@ def create2DFacialRig ( *args ): #del s
                 headControl = s
         location_locators = createInitialLocators(sel)  #createInitialLocators(ls(sl=1)[0])
         mypath       = 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES'
-        ordenLayers  = { 'extras2':7 , 'extras':8 , 'a_diente':9 , 'b_diente':10 , 'lengua':11 , 'boca':12 , 'l_parpado':13 , 'l_parpado_inf':14 , 'l_pupila':15 , 'l_ojo':16 }
+        ordenLayers  = { 'extras2':7 , 'extras':8 , 'a_diente':9 , 'b_diente':10 , 'lengua':11 , 'boca':12 , 'l_parpado_sup':13 , 'l_parpado_inf':14 , 'l_pupila':15 , 'l_ojo':16 }
         dirsFiles    = UTILITIES.dirs_files_dic( mypath ,'png')
         layeredTextureDic = {}
         layerTex     =   createIfNeeded ( 'Face_LTX' , 'layeredTexture' )
@@ -502,9 +503,14 @@ c1 =   cmds.columnLayout( columnAttach=('left', 5), adjustableColumn=True , rowS
 cmds.text('\nCrea un locator y escalalo como queres los controles:',p=c1)
 r0 = cmds.rowLayout( numberOfColumns=1, adjustableColumn=1, columnAlign=(1, 'right'), columnAttach=[(1, 'both', 0)] ,p=c1)
 cmds.button( label = 'Crear Locator.' , command = 'cmds.spaceLocator(n="scaleReference_LOC")' , p = c1 )
+
+c1b =   cmds.columnLayout( columnAttach=('both', 5) , adjustableColumn=True , rowSpacing=50,  cal= "center", columnWidth=550 , p=win , bgc=(0.3,0.3,0.3) )
+cmds.checkBox ('Mirror ' , p = c1b , w=100 , bgc=(0.6,0.6,0.6))
+
 c2 =   cmds.columnLayout( columnAttach=('left', 5) , adjustableColumn=True , rowSpacing=5,  cal= "center", columnWidth=550 , p=win , bgc=(0.2,0.2,0.2) )
 cmds.text('Selecciona el scaleReference_LOC , el mesh de la cabeza y el controlador de la cabeza.',p=c2)
 r1 = cmds.rowLayout( numberOfColumns=2, columnWidth2=(200, 200), adjustableColumn=1, columnAlign=(1, 'right'), columnAttach=[(1, 'both', 0), (2, 'both', 0)], p=c2 , bgc=(0.2,0.2,0.2))
 cmds.text('y clickea:  ' , p = r1 )
 cmds.button( label = 'RIG HEAD' , command = create2DFacialRig , p = r1 )
+
 cmds.showWindow (win)
