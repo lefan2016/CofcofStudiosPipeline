@@ -31,7 +31,6 @@ def upLocGrpMaker ( upLoc , headBBoxCenter ):
 	upLocGrp      = group( em = True , n = upLoc + '_TRF' )
 	parent(   upLoc , upLocGrp.name())
 	upLocGrp.translate.set ( headBBoxCenter[0] , headBBoxCenter[1] , headBBoxCenter[2] )
-	print '    upLocGrpMaker  ok'
 	return upLocGrp , upLoc
 
 def loc2TrfsNewName( obj  ):
@@ -45,7 +44,6 @@ def loc2TrfsNewName( obj  ):
         newName = obj.name()
     else:
         newName = '_'.join(obj.name().split(splitString)[:-1:])
-	print '                 loc2TrfsNewName OK'
     return newName
 
 def customTransforms ( obj , trfs=[] ):
@@ -54,7 +52,6 @@ def customTransforms ( obj , trfs=[] ):
 	Return [trf1,trf2,trf3,...]
 	'''
 	newName    = loc2TrfsNewName ( obj )
-	print 'newName' , newName
 	trfsReturn = []
 	lastTrf  = group ( em = True , n = newName + '_' + trfs[-1])
 	trfsReturn.insert (0, lastTrf)
@@ -69,7 +66,6 @@ def customTransforms ( obj , trfs=[] ):
 	rootTrf  = group ( em = True , n = newName + '_' + trfs[0])
 	parent ( lastTrf , rootTrf )
 	trfsReturn.insert (0, rootTrf)
-	print '           customTransforms OK'
 	return trfsReturn
 
 def createAimSystem ( systemName , follower , target ,  headBBoxCenter ):
@@ -116,7 +112,6 @@ def createAimSystem ( systemName , follower , target ,  headBBoxCenter ):
 	# constraint : projection mira al locator target
 	aimConst=aimConstraint( locAim ,ztrOffTrf3DPlacer[1],mo=0,n=locAim.name()+'_AIMC',aim=[0,0,1],wut='object',wuo=upLocGroup[1] )
 	move2 ( target , targetGroup[1] )
-	print '	 createAimSystem ok'
 	return locAim , aimConst
 
 def constraintObj2Cnt (sel,cnts):
@@ -211,7 +206,7 @@ def locChooser (layer,locs):
     '''
     Determina cuál locator se va a usar para crear los controles.
     '''
-    if layer == 'l_ojo' or layer == 'l_pupila' or layer ==  'l_parpado' or layer ==  'extras':
+    if layer in ('l_ojo' , 'l_pupila' , 'l_parpado' , 'l_parpado_inf' , 'extras'):
         choosenLoc = locs[0]
     else:
         choosenLoc = locs[1]
@@ -236,7 +231,6 @@ def createIfNeeded( node_Name , node_Type ):
 
 def connectAlphas ( layeredTextureDic ):#alphas[7] pos=7
     for pos in layeredTextureDic.keys():
-        print ( layeredTextureDic[ alphas[pos] ][1] , layeredTextureDic[alphas[pos] ][0] )
         connImg2ProjAlpha ( layeredTextureDic[ alphas[pos] ][1] , layeredTextureDic[alphas[pos] ][0] )
 
 def connImg2ProjAlpha ( imgSeq , projector  ):
@@ -347,20 +341,31 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 		newName=targetLoc.split(targetLoc.split('_')[-1:][0])[0]
 	else:
 		newName=targetLoc
+	newName = newName.replace('Target_','')
 	cnt=circle(radius=rad,nr=(0,0,1),name=str(newName + nameCNT))[0] 		# creo cnt
-	if 'l_ojo' in targetLoc or 'boca' in targetLoc:                             # tamaños  y formas para cada parte de la cara
-		ccLook (cntl,rad,3,5)
-	elif 'l_pupila' in targetLoc or 'lengua' in targetLoc:
-		ccLook (cntl,rad*0.6,1,1)
-	elif 'l_parpado' in targetLoc :
-		ccLook (cntl,rad*1.2,1,1)
-	elif 'extras_LOC' == targetLoc :
-		ccLook (cntl,rad*0.3,1,4)
+
+	if 'l_ojo' in targetLoc.name()  or 'boca' in targetLoc.name() :                             # tamaños  y formas para cada parte de la cara
+		print '		OJO'
+		ccLook (cnt,rad,3,5)
+	elif 'l_pupila' in targetLoc.name()  or 'lengua' in targetLoc.name() :
+		print '		PUPILA'
+		ccLook (cnt,rad*0.6,3,5)
+	elif 'l_parpado_inf' in targetLoc.name()  :
+		print '		PARPADO INFERIOR'
+		ccLook (cnt,rad*1.2,3,5)
+		cnt.cv[1].setPosition([0,-4,0],'preTransform')
+		cnt.cv[3].setPosition([-1,-4,0],'preTransform')
+		cnt.cv[4].setPosition([1,-4,0],'preTransform')
+	elif 'l_parpado' in targetLoc.name()  :
+		print '		PARPADO SUPERIOR'
+		ccLook (cnt,rad*1.2,3,5)
+		cnt.cv[3].setPosition([-1,8,0],'preTransform')
+		cnt.cv[4].setPosition([1,8,0],'preTransform')
+	elif 'extras' in targetLoc.name()  :
+		print '		CONTROL EXTRA'
+		ccLook (cnt,rad*0.3,1,4)
 	move2(targetLoc, cnt) 																		# llevo el cnt al locator del aimConstraint
 	targetLoc_parent = listRelatives( targetLoc.name() , parent=1, fullPath=1 , pa=1)[0]		# query del parent del locator del aimConstraint
-	print 'targetLoc_parent' , targetLoc_parent
-	print 'targetLoc.name' , targetLoc.name()
-
 	parent( cnt , targetLoc_parent )															# cnt ahora es hijo del parent del locator
 	parent( targetLoc , cnt )																	# el targetLoc ahora es hijo del cnt
 	maya.mel.eval ('DeleteHistory ' + cnt.name() )														# borro history
@@ -369,7 +374,10 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 	placer3d.scaleZ.set(headSize)
 	connectAttr( cnt.rotateZ , aimConsNode.offsetZ )
 	scaleConstraint ( cnt , placer3d , mo=1 , skip='z')         								# el cnt controla scaleXY solamente
-	print 'placerControl OK'
+	# lock hide de rotate X  y rotate Y
+	setAttr ( cnt.rotateX , l = 1 , k = 0 )
+	setAttr ( cnt.rotateY , l = 1 , k = 0 )
+	setAttr ( cnt.scaleZ , l = 1 , k = 0 )
 	return cnt
 
 def ccLook ( circ , controlSize , degree , sections ): # apariencia del controlador
@@ -379,15 +387,11 @@ def ccLook ( circ , controlSize , degree , sections ): # apariencia del controla
 	ccTrf.getShape().inputs()[0].degree.set(degree)
 	ccTrf.getShape().inputs()[0].sections.set(sections)
 
+
 def connProj2LayTexture( projector , layerTex , chNumber  , layeredTextureDic):
-	print 'connProj2LayTexture'
-	alphas = {7:12 , 8:15 , 9:12 , 10:12 , 11:12 , 12:12 , 13:13 , 14:15 , 15:15 } # que layer usa el alfa de q layer. el 10 usa el 10, el 11 usa el 12, el 13 usa el 13, el 14 usa el 15,,,
+	alphas = {7:12 , 8:15 , 9:12 , 10:12 , 11:12 , 12:12 , 13:13 , 14:14 , 15:16 , 16:16 } # que layer usa el alfa de q layer. el 10 usa el 10, el 11 usa el 12, el 13 usa el 13, el 14 usa el 15,,,
 	projMultDiv = createNode ('multiplyDivide', name=projector + '_multD')
 	connectAttr ( projector.outAlpha , projMultDiv.input1X)
-
-	print '\n',chNumber  , alphas [ chNumber ]
-	print '\n\n', layeredTextureDic
-
 
 	connectAttr ( layeredTextureDic [ alphas [ chNumber ] ] [ 0 ]  + '.outAlpha' , projMultDiv.input2X )
 	# armo alfa y conecto
@@ -411,24 +415,20 @@ def create2DFacialRig ( *args ): #del s
         for s in selection:
             if nodeType( s.getShape() ) == 'locator':
                 locSize = s.scale.get()[0]
-                print s
                 scaleRef = s
             elif nodeType( s.getShape() ) == 'mesh':
-                print s
                 sel = s
                 headSize = s.getBoundingBox().depth() / 2
             elif nodeType( s.getShape() ) == 'nurbsCurve':
-                print s
                 headControl = s
         location_locators = createInitialLocators(sel)  #createInitialLocators(ls(sl=1)[0])
         mypath       = 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES'
-        ordenLayers  = { 'extras2' : 7 , 'extras' : 8 , 'a_diente' : 9 , 'b_diente' : 10 , 'lengua' : 11 , 'boca' : 12 , 'l_parpado' : 13 , 'l_pupila' : 14 , 'l_ojo': 15 }
+        ordenLayers  = { 'extras2':7 , 'extras':8 , 'a_diente':9 , 'b_diente':10 , 'lengua':11 , 'boca':12 , 'l_parpado':13 , 'l_parpado_inf':14 , 'l_pupila':15 , 'l_ojo':16 }
         dirsFiles    = UTILITIES.dirs_files_dic( mypath ,'png')
         layeredTextureDic = {}
         layerTex     =   createIfNeeded ( 'Face_LTX' , 'layeredTexture' )
         faceShader   = createIfNeeded ( 'Face_SHD' , 'aiStandard' )
         headCenter    = sel.getBoundingBox().center()
-        print 'sel: ' + sel
         uvNode = create2DUvNode( sel )
         try:
             connectAttr ( layerTex + '.outColor'  , faceShader+ '.color' )
