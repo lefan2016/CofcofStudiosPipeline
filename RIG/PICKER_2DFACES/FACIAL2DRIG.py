@@ -4,7 +4,6 @@ from pymel.core import *
 from os import listdir
 from os.path import isfile, join
 import pymel.core.datatypes
-
 path=r'P:\LOCAL\ES_SCRIPTS\RIG'
 if not path in sys.path:
 	sys.path.append(path)
@@ -354,9 +353,11 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 	elif 'l_parpado_inf' in targetLoc.name()  :
 		print '		PARPADO INFERIOR'
 		ccLook (cnt,rad*1.2,3,5)
-		cnt.cv[1].setPosition([0,-4,0],'preTransform')
-		cnt.cv[3].setPosition([-1,-4,0],'preTransform')
-		cnt.cv[4].setPosition([1,-4,0],'preTransform')
+		cnt.cv[0].setPosition([-10,-2,0],'preTransform')
+		cnt.cv[1].setPosition([0,-6,0],'preTransform')
+		cnt.cv[2].setPosition([10,-2,0],'preTransform')
+		cnt.cv[3].setPosition([-1,-6,0],'preTransform')
+		cnt.cv[4].setPosition([1,-6,0],'preTransform')
 	elif 'l_parpado' in targetLoc.name()  :
 		print '		PARPADO SUPERIOR'
 		ccLook (cnt,rad*1.2,3,5)
@@ -365,6 +366,17 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 	elif 'extras' in targetLoc.name()  :
 		print '		CONTROL EXTRA'
 		ccLook (cnt,rad*0.3,1,4)
+	elif 'a_diente' in targetLoc.name()  :
+		print '		DIENTES SUP'
+		ccLook (cnt,rad*0.3,1,1)
+		cnt.getShape().inputs()[0].centerY.set(5)
+
+	elif 'b_diente' in targetLoc.name()  :
+		print '		DIENTES INF'
+		ccLook (cnt,rad*0.3,1,1)
+		cnt.getShape().inputs()[0].centerY.set(-5)
+		cnt.getShape().inputs()[0].normalZ.set(-13)
+
 	move2(targetLoc, cnt) 																		# llevo el cnt al locator del aimConstraint
 	targetLoc_parent = listRelatives( targetLoc.name() , parent=1, fullPath=1 , pa=1)[0]		# query del parent del locator del aimConstraint
 	parent( cnt , targetLoc_parent )															# cnt ahora es hijo del parent del locator
@@ -416,8 +428,9 @@ def parentingControls(layeredTextureDic):
 	#emparento lengua, diente sup , diente inf , extras (FALTA) a la boca.
 	parent( layeredTextureDic[9][3] , layeredTextureDic[10][3] , layeredTextureDic[11][3] , layeredTextureDic[12][3] )
 
-
 ####### ####### ####### ####### ####### ####### ####### #######
+
+
 
 def create2DFacialRig ( *args ): #del s
     selection = ls(sl=1)
@@ -462,11 +475,10 @@ def create2DFacialRig ( *args ): #del s
                 ccCnt = placerControl ( headSize, locAim[0] , locAim[1] , projectorImagePlacerInput[2] , rad = locSize  )
                 # guardo control
                 layeredTextureDic [ projectorImagePlacerInput[3]  ] = layeredTextureDic [ projectorImagePlacerInput[3]  ] + tuple( [ ccCnt ]) + tuple ([locAim[2]])
-		print '\nDiccionario:\n'
 		# conecto projection a un layer determinado o el siguiente disponible.
         for k in layeredTextureDic.keys():
-            print k, layeredTextureDic[k]
             connProj2LayTexture( layeredTextureDic[k][0] , layerTex , k , layeredTextureDic)
+
         deleteHelpLocators (scaleRef)
         parentingControls(layeredTextureDic)
 
