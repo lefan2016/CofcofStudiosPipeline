@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # @Date:   2017-10-10T11:13:42-03:00
-# @Last modified time: 2017-10-23T18:32:38-03:00
+# @Last modified time: 2017-10-24T02:58:22-03:00
 import random
 import re
 import sys
@@ -133,14 +133,14 @@ def botonesUI(directorios='', nameSpace='', sizeButtons=100, parents='', control
         for ctrl in directorios[key]:
             # valFrame=[s.zfill(2) for s in re.findall(r'\b\d+\b', img)]
             val = [int(s) for s in re.findall(r'\b\d+\b', ctrl)][0]
-
+            nameImg=ctrl
             # Solo si existe algo escrito en la variable nameSpace y si es asi
             # le agrego el nameSpace al control.
             if nameSpace is not '':
                 ctrl = nameSpace + ctrl
             # Agrego el boton y la funcion, con el nombre del value del
             # diccionario
-            cmds.symbolButton(ctrl, image=key + '\\' + ctrl, width=sizeButtons, height=sizeButtons, backgroundColor=color2,
+            cmds.symbolButton(ctrl, image=key + '\\' + nameImg, width=sizeButtons, height=sizeButtons, backgroundColor=color2,
                               annotation='( SHIFT+CLICK setea la misma cara opuesta. )', command=partial(getFrame, val, sideFace, controlAttributos))
 
 
