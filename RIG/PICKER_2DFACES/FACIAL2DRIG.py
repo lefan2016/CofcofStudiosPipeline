@@ -202,15 +202,6 @@ def connImg2ProjColor ( imgSeq , projector  ):
     '''
     connectAttr ( imgSeq + '.outColor'     , projector + '.image' )
 
-def locChooser (layer,locs):
-    '''
-    Determina cuál locator se va a usar para crear los controles.
-    '''
-    if layer in ('l_ojo' , 'l_pupila' , 'l_parpado_sup' , 'l_parpado_inf' , 'extras'):
-        choosenLoc = locs[0]
-    else:
-        choosenLoc = locs[1]
-    return choosenLoc
 
 def getLocation ( ): # del bBoxCentera
     sel = ls(sl=1)
@@ -277,17 +268,29 @@ def createInitialLocators(sel):
     posX = location[0] + locationOffsetX
     posY = location[1] - locationOffsetY
     posZ = location[2] + locationOffsetZ
-    pEyeX , pEyeY , pEyeZ , pMouthX , pMouthY , pMouthZ = (0,)*6
+    pLEyeX , pLEyeY , pLEyeZ , pREyeX , pREyeY , pREyeZ , pMouthX , pMouthY , pMouthZ = (0,)*9
     if not objExists( 'L_Eye_LOC' ):
         loc1 = spaceLocator( n='L_Eye_LOC')
         loc1.translate.set ( posX , location[1] , posZ )
-        pEyeX = posX
-        pEyeY = location[1]
-        pEyeZ = posZ
+        pLEyeX = posX
+        pLEyeY = location[1]
+        pLEyeZ = posZ
     else:
-        pEyeX = getAttr('L_Eye_LOC.translateX')
-        pEyeY = getAttr('L_Eye_LOC.translateY')
-        pEyeZ = getAttr('L_Eye_LOC.translateZ')
+        pLEyeX = getAttr('L_Eye_LOC.translateX')
+        pLEyeY = getAttr('L_Eye_LOC.translateY')
+        pLEyeZ = getAttr('L_Eye_LOC.translateZ')
+
+    if not objExists( 'R_Eye_LOC' ):
+        loc3 = spaceLocator( n='R_Eye_LOC')
+        loc3.translate.set ( posX * (-1) , location[1] , posZ )
+        pREyeX = loc3.translateX.get ()
+        pREyeY = location[1]
+        pREyeZ = posZ
+    else:
+        pREyeX = getAttr('R_Eye_LOC.translateX')
+        pREyeY = getAttr('R_Eye_LOC.translateY')
+        pREyeZ = getAttr('R_Eye_LOC.translateZ')
+
     if not objExists( 'Mouth_LOC' ):
         loc2 = spaceLocator( n='Mouth_LOC')
         loc2.translate.set ( location[0] , posY , posZ )
@@ -296,7 +299,7 @@ def createInitialLocators(sel):
         pMouthY = getAttr('Mouth_LOC.translateY')
         pMouthZ = getAttr('Mouth_LOC.translateZ')
 
-    return { 'L_Eye_LOC': [pEyeX , pEyeY , pEyeZ ]  , 'Mouth_LOC': [ pMouthX , pMouthY , pMouthZ ]  }
+    return { 'L_Eye_LOC': [pLEyeX , pLEyeY , pLEyeZ ]  , 'Mouth_LOC': [ pMouthX , pMouthY , pMouthZ ] ,'R_Eye_LOC': [pREyeX , pREyeY , pREyeZ ] }
 
 def deleteHelpLocators (s):
     for o in ('L_Eye_LOC', 'Mouth_LOC' , s):
@@ -318,8 +321,8 @@ def parentControls ( networkDic ) :
         delete ( networkDic[n][3][3][0] )
 
 def changeOverrideColor ( cnt , color ):
-	cnt.getShape().overrideEnabled.set( True )
-	cnt.getShape().overrideColor.set( color )
+    cnt.getShape().overrideEnabled.set( True )
+    cnt.getShape().overrideColor.set( color )
 
 
 def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' , nameTrf='TRF' , nameCNT='CNT' , rad=2 ): #objs=texturePlacer
@@ -333,11 +336,7 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 	cnt: curva control que se ha creado.
 
 	'''
-	print '\n placerControl \n'
-	print 'headSize', headSize
-	print 'targetLoc', targetLoc , repr(targetLoc)
-	print 'aimConsNode' , aimConsNode , repr (aimConsNode)
-	print ''
+
 	if '|' in targetLoc:
 		targetLoc=targetLoc.split('|')[-1]
 	if '_' in targetLoc:
@@ -347,13 +346,13 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 	newName = newName.replace('Target_','')
 	cnt=circle(radius=rad,nr=(0,0,1),name=str(newName + nameCNT))[0] 		# creo cnt
 
-	if 'l_ojo' in targetLoc.name()  or 'boca' in targetLoc.name() :                             # tamaños  y formas para cada parte de la cara
+	if 'ojo' in targetLoc.name()  or 'boca' in targetLoc.name() :                             # tamaños  y formas para cada parte de la cara
 		ccLook( cnt , rad , 3 , 5 )
 		changeOverrideColor ( cnt , 13 )
-	elif 'l_pupila' in targetLoc.name()  or 'lengua' in targetLoc.name() :
+	elif 'pupila' in targetLoc.name()  or 'lengua' in targetLoc.name() :
 		ccLook (cnt,rad*0.6,3,5)
 		changeOverrideColor ( cnt , 17 )
-	elif 'l_parpado_inf' in targetLoc.name()  :
+	elif 'parpado_inf' in targetLoc.name()  :
 		ccLook (cnt,rad*1.2,3,5)
 		changeOverrideColor ( cnt , 6 )
 		cnt.cv[0].setPosition([-5,-2,0],'preTransform')
@@ -361,7 +360,7 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 		cnt.cv[2].setPosition([5,-2,0],'preTransform')
 		cnt.cv[4].setPosition([-5,-6,0],'preTransform')
 		cnt.cv[3].setPosition([5,-6,0],'preTransform')
-	elif 'l_parpado_sup' in targetLoc.name()  :
+	elif 'parpado_sup' in targetLoc.name()  :
 		ccLook ( cnt , rad * 1.2 , 3 , 5 )
 		changeOverrideColor ( cnt , 18 )
 		cnt.cv[3].setPosition([-1,3,0],'preTransform')
@@ -402,7 +401,7 @@ def ccLook ( circ , controlSize , degree , sections ): # apariencia del controla
 
 
 def connProj2LayTexture( projector , layerTex , chNumber  , layeredTextureDic):
-	alphas = {7:12 , 8:15 , 9:12 , 10:12 , 11:12 , 12:12 , 13:13 , 14:14 , 15:16 , 16:16 } # que layer usa el alfa de q layer. el 10 usa el 10, el 11 usa el 12, el 13 usa el 13, el 14 usa el 15,,,
+	alphas = {7:12 , 8:16 , 9:12 , 10:12 , 11:12 , 12:12 , 13:13 , 14:14 , 15:16 , 16:16 ,17:17} # que layer usa el alfa de q layer. el 10 usa el 10, el 11 usa el 12, el 13 usa el 13, el 14 usa el 15,,,
 	projMultDiv = createNode ('multiplyDivide', name=projector + '_multD')
 	connectAttr ( projector.outAlpha , projMultDiv.input1X)
 
@@ -412,6 +411,7 @@ def connProj2LayTexture( projector , layerTex , chNumber  , layeredTextureDic):
 		minusNode = createNode ('plusMinusAverage', name=projector + '_MIN')
 		minusNode.operation.set(2)
 		connectAttr ( projMultDiv.outputX , minusNode.input2D[0].input2Dx  )
+		print layeredTextureDic
 		connectAttr ( layeredTextureDic[ 13 ][0] + '.outAlpha' , minusNode.input2D[1].input2Dx  )
 		connectAttr ( minusNode.output2D.output2Dx , layerTex + '.inputs[' + str(chNumber) + '].alpha' )
 	else:
@@ -426,11 +426,24 @@ def parentingControls(layeredTextureDic):
 	'''
 	#emparento pupila, parpados y extras del ojo al fondo del ojo.
 	parent( layeredTextureDic[8][3] , layeredTextureDic[13][3] , layeredTextureDic[14][3] , layeredTextureDic[15][3] , layeredTextureDic[16][3] )
-	#emparento lengua, diente sup , diente inf , extras (FALTA) a la boca.
-	parent( layeredTextureDic[9][3] , layeredTextureDic[10][3] , layeredTextureDic[11][3] , layeredTextureDic[12][3] )
+
+	if not cmds.checkBox(mirrorcheckBox,q=1,v=1):
+		#emparento lengua, diente sup , diente inf , extras (FALTA) a la boca.
+		parent( layeredTextureDic[9][3] , layeredTextureDic[10][3] , layeredTextureDic[11][3] , layeredTextureDic[12][3] )
+
+def locChooser (layer,locs):
+    '''
+    Determina cuál locator se va a usar para crear los controles.
+    '''
+    if   layer in ('l_ojo' , 'l_pupila' , 'l_parpado_sup' , 'l_parpado_inf' , 'l_extras'):
+        choosenLoc = locs[1]
+    elif layer in ('r_ojo' , 'r_pupila' , 'r_parpado_sup' , 'r_parpado_inf' , 'r_extras'):
+        choosenLoc = locs[0]
+    else:
+        choosenLoc = locs[2]
+    return choosenLoc
 
 ####### ####### ####### ####### ####### ####### ####### #######
-
 
 
 def create2DFacialRig ( *args ): #del s
@@ -445,9 +458,15 @@ def create2DFacialRig ( *args ): #del s
                 headSize = s.getBoundingBox().depth() / 2
             elif nodeType( s.getShape() ) == 'nurbsCurve':
                 headControl = s
-        location_locators = createInitialLocators(sel)  #createInitialLocators(ls(sl=1)[0])
+        location_locators = createInitialLocators(sel)
         mypath       = 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES'
-        ordenLayers  = { 'extras2':7 , 'extras':8 , 'a_diente':9 , 'b_diente':10 , 'lengua':11 , 'boca':12 , 'l_parpado_sup':13 , 'l_parpado_inf':14 , 'l_pupila':15 , 'l_ojo':16 }
+        isMirror = cmds.checkBox(mirrorcheckBox, q=1,v=True)
+        if isMirror:
+            ordenLayers  = { 'r_extras':8 , 'r_parpado_sup':13 , 'r_parpado_inf':14 , 'r_pupila':15 , 'r_ojo':16 }
+            print 'M I R R O R '
+        else:
+            ordenLayers  = { 'extras':17 , 'l_extras':8 , 'a_diente':9 , 'b_diente':10 , 'lengua':11 , 'boca':12 , 'l_parpado_sup':13 , 'l_parpado_inf':14 , 'l_pupila':15 , 'l_ojo':16 }
+            print ' L E F T '
         dirsFiles    = UTILITIES.dirs_files_dic( mypath ,'png')
         layeredTextureDic = {}
         layerTex     =   createIfNeeded ( 'Face_LTX' , 'layeredTexture' )
@@ -460,8 +479,8 @@ def create2DFacialRig ( *args ): #del s
             pass
         for k in dirsFiles.keys(): # k='O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES\l_ojo'
             layer = k.split('\\')[-1]
-            #if 'r_' != layer[0:2] and dirsFiles[k]!=[]:
-            if 'r_' != layer[0:2] and dirsFiles[k]!=[]:
+            condition = ('r_' != layer[0:2] and dirsFiles[k]!=[] , 'r_'==layer[:2] and dirsFiles[k]!=[] ) [isMirror]
+            if condition:
                 # determina cuál locator se va a usar para crear los controles.
                 loc = locChooser ( layer , location_locators.keys() )
                 # path de secuencia
@@ -476,11 +495,11 @@ def create2DFacialRig ( *args ): #del s
                 ccCnt = placerControl ( headSize, locAim[0] , locAim[1] , projectorImagePlacerInput[2] , rad = locSize  )
                 # guardo control
                 layeredTextureDic [ projectorImagePlacerInput[3]  ] = layeredTextureDic [ projectorImagePlacerInput[3]  ] + tuple( [ ccCnt ]) + tuple ([locAim[2]])
-		# conecto projection a un layer determinado o el siguiente disponible.
+        # conecto projection a un layer determinado o el siguiente disponible.
         for k in layeredTextureDic.keys():
             connProj2LayTexture( layeredTextureDic[k][0] , layerTex , k , layeredTextureDic)
 
-        deleteHelpLocators (scaleRef)
+        #deleteHelpLocators (scaleRef)
         parentingControls(layeredTextureDic)
 
 
@@ -491,6 +510,10 @@ def create2DFacialRig ( *args ): #del s
 
     else:
         warning ( '  Selection is null or multiple. Select head mesh ' )
+
+
+def testCommand(*args):
+	print cmds.checkBox(mirrorcheckBox, q=1 , v=1)
 
 if cmds.window ('win2dFacialRig',exists=1):
 	cmds.deleteUI ( 'win2dFacialRig' )
@@ -505,9 +528,10 @@ r0 = cmds.rowLayout( numberOfColumns=1, adjustableColumn=1, columnAlign=(1, 'rig
 cmds.button( label = 'Crear Locator.' , command = 'cmds.spaceLocator(n="scaleReference_LOC")' , p = c1 )
 
 c1b =   cmds.columnLayout( columnAttach=('both', 5) , adjustableColumn=True , rowSpacing=50,  cal= "center", columnWidth=550 , p=win , bgc=(0.3,0.3,0.3) )
-cmds.checkBox ('Mirror ' , p = c1b , w=100 , bgc=(0.6,0.6,0.6))
+mirrorcheckBox = cmds.checkBox ('Mirror' , p = c1b , w=100 , bgc=(0.6,0.6,0.6))
 
 c2 =   cmds.columnLayout( columnAttach=('left', 5) , adjustableColumn=True , rowSpacing=5,  cal= "center", columnWidth=550 , p=win , bgc=(0.2,0.2,0.2) )
+cmds.button ('test' , c=testCommand , p=c2)
 cmds.text('Selecciona el scaleReference_LOC , el mesh de la cabeza y el controlador de la cabeza.',p=c2)
 r1 = cmds.rowLayout( numberOfColumns=2, columnWidth2=(200, 200), adjustableColumn=1, columnAlign=(1, 'right'), columnAttach=[(1, 'both', 0), (2, 'both', 0)], p=c2 , bgc=(0.2,0.2,0.2))
 cmds.text('y clickea:  ' , p = r1 )
