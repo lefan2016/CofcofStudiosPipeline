@@ -444,9 +444,9 @@ def connProj2LayTexture( projector , layerTex , chNumber  , layeredTextureDic):
 ####### ####### ####### ####### ####### ####### ####### #######
 
 def rig2DFace (*args):
-	rLayeredTexture = create2DFacialRig ( False ) [ 0 ]
+	rLayeredTexture = create2DFacialRig ( False )
 	print 'se ha creado el lado izquierdo'
-	lLayeredTexture = create2DFacialRig ( True  ) [ 0 ]
+	lLayeredTexture = create2DFacialRig ( True  )
 	print 'se ha creado el lado derecho'
 	faceLTX	   = createNode ('layeredTexture' , n='face_LTX' )
 
@@ -520,7 +520,7 @@ def create2DFacialRig ( isMirror ):
         if isMirror:
             deleteHelpLocators ()
 
-        return layerTex,faceShader
+        return layerTex
 
 
     else:
@@ -535,22 +535,23 @@ def testCommand(*args):
 if cmds.window ('win2dFacialRig',exists=1):
 	cmds.deleteUI ( 'win2dFacialRig' )
 
-fondo=(0.3,0.3,0.3)
+bgCustomColor=(0.1,0.1,0.1)
+buttCustomColor=(0.3,0.3,0.3)
 win = cmds.window('win2dFacialRig', title="2D Facial Rig! v1.0" , menuBar=0 , w=400 , s=1 , height= 50, bgc=(0.1,0.1,0.1) , resizeToFitChildren=1 )
 col1 = cmds.columnLayout( columnAttach=('left', 5), adjustableColumn=True , rowSpacing=5, cal= "center" , columnWidth=100 , p=win , bgc=(0.1,0.1,0.1)  )
-col1b = cmds.columnLayout( columnAttach=('left', 5), adjustableColumn=True , rowSpacing=5, cal= "center" , columnWidth=100 , p=col1 , bgc=fondo  )
-cmds.button('Selecciona el mesh de la cabeza y clickeame.',p=col1b,c=validateInitLocButtCmd , w=400) #validateInitLocButtCmd()
+col1b = cmds.columnLayout( columnAttach=('left', 5), adjustableColumn=True , rowSpacing=5, cal= "center" , columnWidth=100 , p=col1 , bgc=bgCustomColor  )
+cmds.button('Selecciona el mesh de la cabeza y clickeame.',p=col1b,c=validateInitLocButtCmd , w=400 , bgc=buttCustomColor) #validateInitLocButtCmd()
 cmds.text('Ubica los locators en la boca y ojo.',align='center' , p=col1b)
 cmds.text('Rotaciones son consideradas.',align='center' , p=col1b)
-c1 =   cmds.columnLayout( columnAttach=('left', 5), adjustableColumn=True , rowSpacing=5,  cal= "center", columnWidth=550 , p=col1 , bgc=fondo )
+c1 =   cmds.columnLayout( columnAttach=('left', 5), adjustableColumn=True , rowSpacing=5,  cal= "center", columnWidth=550 , p=col1 , bgc=bgCustomColor )
 cmds.text('\nCrea un locator y escalalo como queres los controles:',p=c1)
 r0 = cmds.rowLayout( numberOfColumns=1, adjustableColumn=1, columnAlign=(1, 'right'), columnAttach=[(1, 'both', 0)] ,p=c1)
-cmds.button( label = 'Crear Locator.' , command = 'cmds.spaceLocator(n="scaleReference_LOC")' , p = c1 )
-c1b =   cmds.columnLayout( columnAttach=('both', 5) , adjustableColumn=True , rowSpacing=50,  cal= "center", columnWidth=550 , p=col1 , bgc=fondo )
-c2 =   cmds.columnLayout( columnAttach=('left', 5) , adjustableColumn=True , rowSpacing=5,  cal= "center", columnWidth=550 , p=col1 , bgc=fondo )
+cmds.button( label = 'Crear Locator.' , command = 'cmds.spaceLocator(n="scaleReference_LOC")' , p = c1 ,bgc=buttCustomColor)
+c1b =   cmds.columnLayout( columnAttach=('both', 5) , adjustableColumn=True , rowSpacing=50,  cal= "center", columnWidth=550 , p=col1 , bgc=bgCustomColor )
+c2 =   cmds.columnLayout( columnAttach=('left', 5) , adjustableColumn=True , rowSpacing=5,  cal= "center", columnWidth=550 , p=col1 , bgc=bgCustomColor )
 cmds.text('Selecciona el scaleReference_LOC , el mesh de la cabeza y el controlador de la cabeza.',p=c2)
-r1 = cmds.rowLayout( numberOfColumns=2, columnWidth2=(200, 200), adjustableColumn=1, cl2=('center', 'center'), columnAttach=[(1, 'both', 0), (2, 'both', 0)], p=c2 , bgc=fondo)
+r1 = cmds.rowLayout( numberOfColumns=2, columnWidth2=(200, 200), adjustableColumn=1, cl2=('center', 'center'), columnAttach=[(1, 'both', 0), (2, 'both', 0)], p=c2 , bgc=bgCustomColor)
 cmds.text('y clickea:  ' , p = r1 )
-cmds.button ( label = 'RIG HEAD' , command = rig2DFace , p = r1 )
+cmds.button ( label = 'RIG HEAD' , command = rig2DFace , p = r1 ,bgc=buttCustomColor)
 
 cmds.showWindow (win)
