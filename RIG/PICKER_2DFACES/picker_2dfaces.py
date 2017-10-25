@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # @Date:   2017-10-10T11:13:42-03:00
-# @Last modified time: 2017-10-24T02:58:22-03:00
+# @Last modified time: 2017-10-25T16:12:31-03:00
 import random
 import re
 import sys
@@ -21,16 +21,22 @@ import pymel.core as pm
 #     print 'NO SE PUDO IMPORTAR EL MODULO'
 
 
-
-def setKeyNow(obj='L_EYE_PUPILA_CNT', attr='r_ojo'):
+def setKeyNow(obj='C_head_01_CTRL', attr='r_ojo'):
     currentTimeX = cmds.currentTime(query=True)
     cmds.setKeyframe(obj, attribute=attr, t=[currentTimeX, currentTimeX])
     cmds.keyTangent(obj, at=attr, itt='linear', ott='linear')
-    print 'KEY en: ', obj, attr
+
+
+def rotLayer(attr='l_ojo', ctr='C_head_01_CTRL',barraUI=None ,*args):
+    if barraUI:
+        attr = attr + '_ROT'
+        if cmds.objExists(ctr + '.' + attr):
+            val=cmds.floatSlider(barraUI,q=True,value=True)
+            cmds.setAttr(ctr + '.' + attr, val)
+            setKeyNow(ctr, attr)
+
 
 # Ocultara el layer en maya.
-
-
 def displayLayer(attr='l_ojo', ctr='L_EYE_PUPILA_CNT', *args):
 
     attr = attr + '_VIS'
@@ -87,10 +93,11 @@ def getFrame(val=0, attr='r_ojo', ctr='L_EYE_PUPILA_CNT', *args):
 def botonesUI(directorios='', nameSpace='', sizeButtons=100, parents='', controlAttributos='L_EYE_PUPILA_CNT'):
 
     # Contengo todo en un solo scroll grande
-    scroll = cmds.scrollLayout('scrollLayout', parent=parents)
+    scroll = cmds.scrollLayout( parent=parents)
+    cantButColumFila=7
     # Creo una fila con 3 columnos grandes
-    rowGeneral = cmds.rowLayout(numberOfColumns=3, columnWidth3=(sizeButtons * 6, sizeButtons * 6, sizeButtons * 6),
-                                adjustableColumn3=1, columnAlign=(1, 'right'), columnAttach=[(1, 'left', 0), (2, 'both', 0), (3, 'left', 0)])
+    rowGeneral = cmds.rowLayout(numberOfColumns=3, columnWidth3=(sizeButtons * cantButColumFila, sizeButtons * cantButColumFila, sizeButtons * cantButColumFila),
+                                adjustableColumn3=1, columnAttach=[(1, 'left', 0), (2, 'both', 0), (3, 'both', 0)])
     colRight = cmds.columnLayout(adjustableColumn=True, parent=rowGeneral)
     colMid = cmds.columnLayout(adjustableColumn=True, parent=rowGeneral)
     colLeft = cmds.columnLayout(adjustableColumn=True, parent=rowGeneral)
@@ -114,19 +121,17 @@ def botonesUI(directorios='', nameSpace='', sizeButtons=100, parents='', control
             colaps = True
 
         # Creo una columna para los botones
-        cl1 = cmds.columnLayout(adjustableColumn=True, parent=sideParent)
+        cl1 = cmds.columnLayout(adjustableColumn=True,parent=sideParent)
+        frameIn = cmds.frameLayout(label=sideFace.upper(), collapsable=True,collapse=colaps, bgc=color1,parent=cl1)
 
-        frameIn = cmds.frameLayout(label=sideFace.upper(
-        ), collapsable=True, parent=cl1, bgc=color1)
-        cl2 = cmds.columnLayout(cal='right', cat=['both', 0], columnOffset=[
-                                'both', 0],  adjustableColumn=True, parent=frameIn)
+        cl2 = cmds.columnLayout(cal='right', cat=['both', 0], columnOffset=[ 'both', 0],  adjustableColumn=True, parent=frameIn)
+        cmds.button(label='DisplayLayer', command=partial( displayLayer, sideFace, controlAttributos))
+        barraRotacion=cmds.floatSlider('barra-'+sideFace,min=-180, max=180, value=0, step=1)
+        cmds.floatSlider(barraRotacion,edit=True,changeCommand=partial(rotLayer, sideFace, controlAttributos,barraRotacion),dragCommand=partial( rotLayer, sideFace, controlAttributos,barraRotacion))
 
-        cmds.button(label='DisplayLayer', command=partial(
-            displayLayer, sideFace, controlAttributos))
-
-        expres = cmds.frameLayout(
-            label='Expresiones', collapsable=True, collapse=colaps)
-        cmds.rowColumnLayout(numberOfRows=4, bgc=color2)
+        expres = cmds.frameLayout(  label='Expresiones', height=150, collapsable=True, collapse=False)
+        scroll2 = cmds.scrollLayout( childResizable=True,horizontalScrollBarThickness=sizeButtons,verticalScrollBarThickness=sizeButtons,parent=expres)
+        rcl1=cmds.rowColumnLayout(numberOfRows=6, bgc=color2)
         # Para diferenciar las carpeas o frames le pongo diferentes colores
         # r,g,b=random.uniform(0.0,1.0),random.uniform(0.0,1.0),random.uniform(0.0,1.0)
         # creo por cada file un boton
@@ -154,7 +159,7 @@ def UI(charName='MILO', directorios={}, nameSpace='', sizeButtons=60, controlAtt
         cmds.deleteUI(WorkspaceName)
         print 'Se borro', WorkspaceName
     # ejecuto funcion de interfas y la guardo en un dock
-    cmds.workspaceControl(WorkspaceName, initialHeight=600, initialWidth=520, floating=True,
+    cmds.workspaceControl(WorkspaceName,heightProperty='fixed', initialHeight=600, initialWidth=500, floating=True,
                           retain=False,  dtm=('right', 1))
     botonesUI(directorios, nameSpace, sizeButtons,
               WorkspaceName, controlAttributo)
@@ -186,11 +191,11 @@ except (RuntimeError, TypeError, NameError, IOError):
     print 'NO SE PUDO IMPORTAR EL MODULO'
 
 nameUI = 'MILO' #Nombre que utilizara la interface.
-nameSpace = 'milo1' #NameSpace del personaje.
+nameSpace = '' #NameSpace del personaje.
 obj='C_head_01_CTRL' #objeto que contiene los atributos animables.
 path = 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES' #Carpeta ordenada donde se contiene los arhivos proxys.
-rangeVariable=31 #Cantidad maxima de archivos que contiene una carpeta de proxy.
+rangeVariable=60 #Cantidad maxima de archivos que contiene una carpeta de proxy.
 sizeButtons=30 #Tamaño de botonera
 
-picker_2dfaces.Picker2D(obj,path,rangeVariable,nameUI,nameSpace,sizeButtons)#Funcion que contiene toda la programacion necesaria para la UI
+Picker2D(obj,path,rangeVariable,nameUI,nameSpace,sizeButtons)#Funcion que contiene toda la programacion necesaria para la UI
 '''
