@@ -300,7 +300,7 @@ def createInitialLocators(sel):
 
     return { 'L_Eye_LOC': [pLEyeX , pLEyeY , pLEyeZ ]  , 'Mouth_LOC': [ pMouthX , pMouthY , pMouthZ ] ,'R_Eye_LOC': [pREyeX , pREyeY , pREyeZ ] }
 
-def deleteHelpLocators (s):
+def deleteHelpLocators ():
     for o in ('L_Eye_LOC', 'R_Eye_LOC' , 'Mouth_LOC' , 'scaleReference_LOC'):
         delete (o)
 
@@ -348,7 +348,7 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 		changeOverrideColor ( cnt , 17 )
 	elif 'parpado_inf' in targetLoc.name()  :
 		ccLook (cnt,rad*1.2,3,5)
-		changeOverrideColor ( cnt , 6 )
+		changeOverrideColor ( cnt , 18 )
 		cnt.cv[0].setPosition([-5,-2,0],'preTransform')
 		cnt.cv[1].setPosition([0,-3,0],'preTransform')
 		cnt.cv[2].setPosition([5,-2,0],'preTransform')
@@ -364,7 +364,7 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 		changeOverrideColor ( cnt , 4 )
 	elif 'a_diente' in targetLoc.name()  :
 		ccLook (cnt,rad*0.3,1,1)
-		changeOverrideColor ( cnt , 18 )
+		changeOverrideColor ( cnt , 6 )
 		cnt.getShape().inputs()[0].centerY.set(5)
 	elif 'b_diente' in targetLoc.name()  :
 		ccLook (cnt,rad*0.3,1,1)
@@ -393,14 +393,14 @@ def ccLook ( circ , controlSize , degree , sections ): # apariencia del controla
 	ccTrf.getShape().inputs()[0].degree.set(degree)
 	ccTrf.getShape().inputs()[0].sections.set(sections)
 
-def parentingControls(layeredTextureDic):
+def parentingControls(layeredTextureDic,isMirror):
 	'''
 	Emparenta los transforms de los controladores para que puedan heredar transformaciones.
 	'''
 	#emparento pupila, parpados y extras del ojo al fondo del ojo.
 	parent( layeredTextureDic[8][3] , layeredTextureDic[13][3] , layeredTextureDic[14][3] , layeredTextureDic[15][3] , layeredTextureDic[16][3] )
 
-	if not cmds.checkBox(mirrorcheckBox,q=1,v=1):
+	if not isMirror:
 		#emparento lengua, diente sup , diente inf , extras (FALTA) a la boca.
 		parent( layeredTextureDic[9][3] , layeredTextureDic[10][3] , layeredTextureDic[11][3] , layeredTextureDic[12][3] )
 
@@ -443,8 +443,28 @@ def connProj2LayTexture( projector , layerTex , chNumber  , layeredTextureDic):
 	return chNumber
 ####### ####### ####### ####### ####### ####### ####### #######
 
+def rig2DFace (*args):
+	rLayeredTexture = create2DFacialRig ( False ) [ 0 ]
+	print 'se ha creado el lado izquierdo'
+	lLayeredTexture = create2DFacialRig ( True  ) [ 0 ]
+	print 'se ha creado el lado derecho'
+	faceLTX	   = createNode ('layeredTexture' , n='face_LTX' )
 
-def create2DFacialRig ( *args ): #del s
+	channel = 1 # startingInput : 1
+	for layered in (rLayeredTexture,lLayeredTexture):
+		connectAttr ( layered.outColor  , faceLTX + '.inputs[' + str (channel)+'].color' )
+		connectAttr ( layered.outAlpha  , faceLTX + '.inputs[' + str (channel)+'].alpha' )
+		channel+=1
+
+	# creo shader standard y le conecto la salida del layeredTexture que suma toda la cara.
+	faceShader = createNode ('aiStandard'	  , n='face_SHD')
+	connectAttr ( faceLTX.outColor  , faceShader.color )
+
+def create2DFacialRig ( isMirror ):
+    '''
+	Funcion principal que crea los sistemas. lado izquierdo + boca y despues el ojo derecho.
+    return layerTex,faceShader
+    '''
     selection = ls(sl=1)
     if selValidation ( selection ):
         for s in selection:
@@ -458,26 +478,20 @@ def create2DFacialRig ( *args ): #del s
                 headControl = s
         location_locators = createInitialLocators(sel)
         mypath       = 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES'
-        isMirror = cmds.checkBox(mirrorcheckBox, q=1,v=True)
+
         if isMirror:
             ordenLayers  = { 'r_parpado_sup':8 , 'r_parpado_inf':13 , 'r_extras':14 , 'r_pupila':15 , 'r_ojo':16 }
-            print 'M I R R O R '
         else:
             ordenLayers  = { 'extras':17 , 'l_parpado_sup':8 , 'a_diente':9 , 'b_diente':10 , 'lengua':11 , 'boca':12 , 'l_parpado_inf':13 , 'l_extras':14 , 'l_pupila':15 , 'l_ojo':16 }
-            print ' L E F T '
         dirsFiles    = UTILITIES.dirs_files_dic( mypath ,'png')
         layeredTextureDic = {}
         if isMirror:
             layerTex     =   createIfNeeded ( 'R_Face_LTX' , 'layeredTexture' )
         else:
             layerTex     =   createIfNeeded ( 'L_Face_LTX' , 'layeredTexture' )
-        faceShader   = createIfNeeded ( 'Face_SHD' , 'aiStandard' )
         headCenter    = sel.getBoundingBox().center()
         uvNode = create2DUvNode( sel )
-        try:
-            connectAttr ( layerTex + '.outColor'  , faceShader+ '.color' )
-        except:
-            pass
+
         for k in dirsFiles.keys(): # k='O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES\l_ojo'
             layer = k.split('\\')[-1]
             condition = ('r_' != layer[0:2] and dirsFiles[k]!=[] , 'r_'==layer[:2] and dirsFiles[k]!=[] ) [isMirror]
@@ -499,14 +513,14 @@ def create2DFacialRig ( *args ): #del s
         # conecto projection a un layer determinado o el siguiente disponible.
         for k in layeredTextureDic.keys():
             connProj2LayTexture( layeredTextureDic[k][0] , layerTex , k , layeredTextureDic)
-
         #
-        parentingControls(layeredTextureDic)
+        parentingControls( layeredTextureDic, isMirror )
+        select(cl=1)
+        select(selection)
+        if isMirror:
+            deleteHelpLocators ()
 
-
-
-
-
+        return layerTex,faceShader
 
 
     else:
@@ -516,24 +530,27 @@ def create2DFacialRig ( *args ): #del s
 def testCommand(*args):
 	print cmds.checkBox(mirrorcheckBox, q=1 , v=1)
 
+
+
 if cmds.window ('win2dFacialRig',exists=1):
 	cmds.deleteUI ( 'win2dFacialRig' )
+
+fondo=(0.3,0.3,0.3)
 win = cmds.window('win2dFacialRig', title="2D Facial Rig! v1.0" , menuBar=0 , w=400 , s=1 , height= 50, bgc=(0.1,0.1,0.1) , resizeToFitChildren=1 )
-col1 = cmds.columnLayout( columnAttach=('left', 5), adjustableColumn=True , rowSpacing=5, cal= "center" , columnWidth=100 , p=win , bgc=(0.15,0.15,0.15)  )
-cmds.button('Selecciona el mesh de la cabeza y clickeame.',p=col1,c=validateInitLocButtCmd , w=400) #validateInitLocButtCmd()
-cmds.text('Ubica los locators en la boca y ojo.',align='center' , p=col1)
-cmds.text('Rotaciones son consideradas.',align='center' , p=col1)
-c1 =   cmds.columnLayout( columnAttach=('left', 5), adjustableColumn=True , rowSpacing=5,  cal= "center", columnWidth=550 , p=win , bgc=(0.2,0.2,0.2) )
+col1 = cmds.columnLayout( columnAttach=('left', 5), adjustableColumn=True , rowSpacing=5, cal= "center" , columnWidth=100 , p=win , bgc=(0.1,0.1,0.1)  )
+col1b = cmds.columnLayout( columnAttach=('left', 5), adjustableColumn=True , rowSpacing=5, cal= "center" , columnWidth=100 , p=col1 , bgc=fondo  )
+cmds.button('Selecciona el mesh de la cabeza y clickeame.',p=col1b,c=validateInitLocButtCmd , w=400) #validateInitLocButtCmd()
+cmds.text('Ubica los locators en la boca y ojo.',align='center' , p=col1b)
+cmds.text('Rotaciones son consideradas.',align='center' , p=col1b)
+c1 =   cmds.columnLayout( columnAttach=('left', 5), adjustableColumn=True , rowSpacing=5,  cal= "center", columnWidth=550 , p=col1 , bgc=fondo )
 cmds.text('\nCrea un locator y escalalo como queres los controles:',p=c1)
 r0 = cmds.rowLayout( numberOfColumns=1, adjustableColumn=1, columnAlign=(1, 'right'), columnAttach=[(1, 'both', 0)] ,p=c1)
 cmds.button( label = 'Crear Locator.' , command = 'cmds.spaceLocator(n="scaleReference_LOC")' , p = c1 )
-c1b =   cmds.columnLayout( columnAttach=('both', 5) , adjustableColumn=True , rowSpacing=50,  cal= "center", columnWidth=550 , p=win , bgc=(0.3,0.3,0.3) )
-mirrorcheckBox = cmds.checkBox ('Mirror' , p = c1b , w=100 , bgc=(0.6,0.6,0.6))
-c2 =   cmds.columnLayout( columnAttach=('left', 5) , adjustableColumn=True , rowSpacing=5,  cal= "center", columnWidth=550 , p=win , bgc=(0.2,0.2,0.2) )
+c1b =   cmds.columnLayout( columnAttach=('both', 5) , adjustableColumn=True , rowSpacing=50,  cal= "center", columnWidth=550 , p=col1 , bgc=fondo )
+c2 =   cmds.columnLayout( columnAttach=('left', 5) , adjustableColumn=True , rowSpacing=5,  cal= "center", columnWidth=550 , p=col1 , bgc=fondo )
 cmds.text('Selecciona el scaleReference_LOC , el mesh de la cabeza y el controlador de la cabeza.',p=c2)
-r1 = cmds.rowLayout( numberOfColumns=2, columnWidth2=(200, 200), adjustableColumn=1, columnAlign=(1, 'right'), columnAttach=[(1, 'both', 0), (2, 'both', 0)], p=c2 , bgc=(0.2,0.2,0.2))
+r1 = cmds.rowLayout( numberOfColumns=2, columnWidth2=(200, 200), adjustableColumn=1, cl2=('center', 'center'), columnAttach=[(1, 'both', 0), (2, 'both', 0)], p=c2 , bgc=fondo)
 cmds.text('y clickea:  ' , p = r1 )
-cmds.button ( label = 'RIG HEAD' , command = create2DFacialRig , p = r1 )
-cmds.button ('Borrar locators iniciales' , c=deleteHelpLocators , p = c2 )
+cmds.button ( label = 'RIG HEAD' , command = rig2DFace , p = r1 )
 
 cmds.showWindow (win)
