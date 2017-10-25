@@ -89,7 +89,7 @@ def createAimSystem ( systemName , follower , target ,  headBBoxCenter ):
 	locAimUp = spaceLocator( n=systemName+'_Up_LOC' )
 	# renombro followwer . le pongo prefijo del systemName.
 	rename ( follower , follower.name() )
-	#locAim.visibility.set(0)
+	locAim.visibility.set(0)
 	# muevo locator aim a
 	locAim.translate.set  ( headBBoxCenter[0] , headBBoxCenter[1]    , headBBoxCenter[2] +100)
 	locAimUp.translate.set( headBBoxCenter[0] , headBBoxCenter[1]+1  , headBBoxCenter[2]   )
@@ -186,7 +186,7 @@ def createFacePart ( filePath , pos , layerTex , createAt , projScale ,uvNode):
 	texturePlacer.inheritsTransform.set(True)
 	texturePlacer.translate.set ( createAt )
 	texturePlacer.rotateOrder.set(2)
-	#texturePlacer.visibility.set (0)
+	texturePlacer.visibility.set (0)
 	connectAttr ( texturePlacer + '.worldInverseMatrix[0]' , projector + '.placementMatrix' , f = 1 )  # conecto matrices
 	# asigno textura al file.
 	asignText ( imgSeq , filePath )
@@ -201,7 +201,6 @@ def connImg2ProjColor ( imgSeq , projector  ):
     Conecta color de imgSeq a projector.
     '''
     connectAttr ( imgSeq + '.outColor'     , projector + '.image' )
-
 
 def getLocation ( ): # del bBoxCentera
     sel = ls(sl=1)
@@ -302,10 +301,8 @@ def createInitialLocators(sel):
     return { 'L_Eye_LOC': [pLEyeX , pLEyeY , pLEyeZ ]  , 'Mouth_LOC': [ pMouthX , pMouthY , pMouthZ ] ,'R_Eye_LOC': [pREyeX , pREyeY , pREyeZ ] }
 
 def deleteHelpLocators (s):
-    for o in ('L_Eye_LOC', 'Mouth_LOC' , s):
+    for o in ('L_Eye_LOC', 'R_Eye_LOC' , 'Mouth_LOC' , 'scaleReference_LOC'):
         delete (o)
-
-
 
 def parentControls ( networkDic ) :
     parent ( networkDic[10][3][1][0] , networkDic[12][3][0][0] ) # a_diente child de boca
@@ -324,7 +321,6 @@ def changeOverrideColor ( cnt , color ):
     cnt.getShape().overrideEnabled.set( True )
     cnt.getShape().overrideColor.set( color )
 
-
 def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' , nameTrf='TRF' , nameCNT='CNT' , rad=2 ): #objs=texturePlacer
 	'''
 	headSize <integer> : tamaño de cabeza.
@@ -334,7 +330,6 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 
 	RETURN:
 	cnt: curva control que se ha creado.
-
 	'''
 
 	if '|' in targetLoc:
@@ -345,7 +340,6 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 		newName=targetLoc
 	newName = newName.replace('Target_','')
 	cnt=circle(radius=rad,nr=(0,0,1),name=str(newName + nameCNT))[0] 		# creo cnt
-
 	if 'ojo' in targetLoc.name()  or 'boca' in targetLoc.name() :                             # tamaños  y formas para cada parte de la cara
 		ccLook( cnt , rad , 3 , 5 )
 		changeOverrideColor ( cnt , 13 )
@@ -367,6 +361,7 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 		cnt.cv[4].setPosition([1,3,0],'preTransform')
 	elif 'extras' in targetLoc.name()  :
 		ccLook (cnt,rad*0.3,1,4)
+		changeOverrideColor ( cnt , 4 )
 	elif 'a_diente' in targetLoc.name()  :
 		ccLook (cnt,rad*0.3,1,1)
 		changeOverrideColor ( cnt , 18 )
@@ -376,7 +371,6 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 		changeOverrideColor ( cnt , 6 )
 		cnt.getShape().inputs()[0].centerY.set(-5)
 		cnt.getShape().inputs()[0].normalZ.set(-13)
-
 	move2(targetLoc, cnt) 																		# llevo el cnt al locator del aimConstraint
 	targetLoc_parent = listRelatives( targetLoc.name() , parent=1, fullPath=1 , pa=1)[0]		# query del parent del locator del aimConstraint
 	parent( cnt , targetLoc_parent )															# cnt ahora es hijo del parent del locator
@@ -398,27 +392,6 @@ def ccLook ( circ , controlSize , degree , sections ): # apariencia del controla
 	ccTrf.getShape().inputs()[0].radius.set( controlSize )
 	ccTrf.getShape().inputs()[0].degree.set(degree)
 	ccTrf.getShape().inputs()[0].sections.set(sections)
-
-
-def connProj2LayTexture( projector , layerTex , chNumber  , layeredTextureDic):
-	alphas = {7:12 , 8:16 , 9:12 , 10:12 , 11:12 , 12:12 , 13:13 , 14:14 , 15:16 , 16:16 ,17:17} # que layer usa el alfa de q layer. el 10 usa el 10, el 11 usa el 12, el 13 usa el 13, el 14 usa el 15,,,
-	projMultDiv = createNode ('multiplyDivide', name=projector + '_multD')
-	connectAttr ( projector.outAlpha , projMultDiv.input1X)
-
-	connectAttr ( layeredTextureDic [ alphas [ chNumber ] ] [ 0 ]  + '.outAlpha' , projMultDiv.input2X )
-	# armo alfa y conecto
-	if chNumber==8: # si es extra del ojo, tengo que restar el alfa del parpado.
-		minusNode = createNode ('plusMinusAverage', name=projector + '_MIN')
-		minusNode.operation.set(2)
-		connectAttr ( projMultDiv.outputX , minusNode.input2D[0].input2Dx  )
-		print layeredTextureDic
-		connectAttr ( layeredTextureDic[ 13 ][0] + '.outAlpha' , minusNode.input2D[1].input2Dx  )
-		connectAttr ( minusNode.output2D.output2Dx , layerTex + '.inputs[' + str(chNumber) + '].alpha' )
-	else:
-		connectAttr ( projMultDiv.outputX , layerTex + '.inputs[' + str(chNumber) + '].alpha' )
-    # conecto rgb
-	connectAttr ( projector + '.outColor'  , layerTex + '.inputs[' + str(chNumber) + '].color' )
-	return chNumber
 
 def parentingControls(layeredTextureDic):
 	'''
@@ -443,6 +416,31 @@ def locChooser (layer,locs):
         choosenLoc = locs[2]
     return choosenLoc
 
+def connProj2LayTexture( projector , layerTex , chNumber  , layeredTextureDic):
+	alphas = {7:12 , 8:8 , 9:12 , 10:12 , 11:12 , 12:12 , 13:13 , 14:16 , 15:16 , 16:16 ,17:17} # que layer usa el alfa de q layer. el 10 usa el 10, el 11 usa el 12, el 13 usa el 13, el 14 usa el 15,,,
+	#multiplico el alfa del extra por el alfa del ojo
+	projMultDiv = createNode ('multiplyDivide', name=projector + '_multD')
+	connectAttr ( projector.outAlpha , projMultDiv.input1X)
+	connectAttr ( layeredTextureDic [ alphas [ chNumber ] ] [ 0 ]  + '.outAlpha' , projMultDiv.input2X )
+	# armo alfa y conecto
+	if chNumber==14: # si es extra del ojo, se tiene q ver dentro del ojo y atras de los parpados.
+		#sumo alfas de los parpados
+		parpadosAlfaSuma = createNode ('plusMinusAverage', name=projector + '_SUM')
+		parpadosAlfaSuma.operation.set(1)
+		connectAttr ( layeredTextureDic[ 8 ][0] + '.outAlpha' , parpadosAlfaSuma.input2D[0].input2Dx  )
+		connectAttr ( layeredTextureDic[ 13][0] + '.outAlpha' , parpadosAlfaSuma.input2D[1].input2Dx  )
+		# al resultado de (ojoAlfa X extraAlfa) le tengo que restar (parpSupAlfa+parpInfAlfa)
+		# la cuenta final seria (ojoAlfa X extraAlfa) - (parpSupAlfa + parpInfAlfa)
+		minusNode = createNode ('plusMinusAverage', name=projector + '_MIN')
+		minusNode.operation.set(2)
+		connectAttr ( projMultDiv.outputX 		   , minusNode.input2D[0].input2Dx  )
+		connectAttr ( parpadosAlfaSuma.output2Dx   , minusNode.input2D[1].input2Dx  )
+		connectAttr ( minusNode.output2D.output2Dx , layerTex + '.inputs[' + str(chNumber) + '].alpha' )
+	else:
+		connectAttr ( projMultDiv.outputX , layerTex + '.inputs[' + str(chNumber) + '].alpha' )
+    # conecto rgb
+	connectAttr ( projector + '.outColor'  , layerTex + '.inputs[' + str(chNumber) + '].color' )
+	return chNumber
 ####### ####### ####### ####### ####### ####### ####### #######
 
 
@@ -462,14 +460,17 @@ def create2DFacialRig ( *args ): #del s
         mypath       = 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES'
         isMirror = cmds.checkBox(mirrorcheckBox, q=1,v=True)
         if isMirror:
-            ordenLayers  = { 'r_extras':8 , 'r_parpado_sup':13 , 'r_parpado_inf':14 , 'r_pupila':15 , 'r_ojo':16 }
+            ordenLayers  = { 'r_parpado_sup':8 , 'r_parpado_inf':13 , 'r_extras':14 , 'r_pupila':15 , 'r_ojo':16 }
             print 'M I R R O R '
         else:
-            ordenLayers  = { 'extras':17 , 'l_extras':8 , 'a_diente':9 , 'b_diente':10 , 'lengua':11 , 'boca':12 , 'l_parpado_sup':13 , 'l_parpado_inf':14 , 'l_pupila':15 , 'l_ojo':16 }
+            ordenLayers  = { 'extras':17 , 'l_parpado_sup':8 , 'a_diente':9 , 'b_diente':10 , 'lengua':11 , 'boca':12 , 'l_parpado_inf':13 , 'l_extras':14 , 'l_pupila':15 , 'l_ojo':16 }
             print ' L E F T '
         dirsFiles    = UTILITIES.dirs_files_dic( mypath ,'png')
         layeredTextureDic = {}
-        layerTex     =   createIfNeeded ( 'Face_LTX' , 'layeredTexture' )
+        if isMirror:
+            layerTex     =   createIfNeeded ( 'R_Face_LTX' , 'layeredTexture' )
+        else:
+            layerTex     =   createIfNeeded ( 'L_Face_LTX' , 'layeredTexture' )
         faceShader   = createIfNeeded ( 'Face_SHD' , 'aiStandard' )
         headCenter    = sel.getBoundingBox().center()
         uvNode = create2DUvNode( sel )
@@ -499,7 +500,7 @@ def create2DFacialRig ( *args ): #del s
         for k in layeredTextureDic.keys():
             connProj2LayTexture( layeredTextureDic[k][0] , layerTex , k , layeredTextureDic)
 
-        #deleteHelpLocators (scaleRef)
+        #
         parentingControls(layeredTextureDic)
 
 
@@ -526,15 +527,13 @@ c1 =   cmds.columnLayout( columnAttach=('left', 5), adjustableColumn=True , rowS
 cmds.text('\nCrea un locator y escalalo como queres los controles:',p=c1)
 r0 = cmds.rowLayout( numberOfColumns=1, adjustableColumn=1, columnAlign=(1, 'right'), columnAttach=[(1, 'both', 0)] ,p=c1)
 cmds.button( label = 'Crear Locator.' , command = 'cmds.spaceLocator(n="scaleReference_LOC")' , p = c1 )
-
 c1b =   cmds.columnLayout( columnAttach=('both', 5) , adjustableColumn=True , rowSpacing=50,  cal= "center", columnWidth=550 , p=win , bgc=(0.3,0.3,0.3) )
 mirrorcheckBox = cmds.checkBox ('Mirror' , p = c1b , w=100 , bgc=(0.6,0.6,0.6))
-
 c2 =   cmds.columnLayout( columnAttach=('left', 5) , adjustableColumn=True , rowSpacing=5,  cal= "center", columnWidth=550 , p=win , bgc=(0.2,0.2,0.2) )
-cmds.button ('test' , c=testCommand , p=c2)
 cmds.text('Selecciona el scaleReference_LOC , el mesh de la cabeza y el controlador de la cabeza.',p=c2)
 r1 = cmds.rowLayout( numberOfColumns=2, columnWidth2=(200, 200), adjustableColumn=1, columnAlign=(1, 'right'), columnAttach=[(1, 'both', 0), (2, 'both', 0)], p=c2 , bgc=(0.2,0.2,0.2))
 cmds.text('y clickea:  ' , p = r1 )
-cmds.button( label = 'RIG HEAD' , command = create2DFacialRig , p = r1 )
+cmds.button ( label = 'RIG HEAD' , command = create2DFacialRig , p = r1 )
+cmds.button ('Borrar locators iniciales' , c=deleteHelpLocators , p = c2 )
 
 cmds.showWindow (win)
