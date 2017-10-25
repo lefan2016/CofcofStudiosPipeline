@@ -1,5 +1,5 @@
 # @Date:   2017-10-21T04:20:53-03:00
-# @Last modified time: 2017-10-23T17:07:14-03:00
+# @Last modified time: 2017-10-25T03:52:03-03:00
 
 
 
@@ -35,6 +35,7 @@ def addAttr_FromFolders( obj , path , ext , keyWord , rangeVariable=31): #del ar
                 if not cmds.objExists(obj+'.'+att+'_VIS') and not cmds.objExists(obj+'.'+att):
                     cmds.addAttr(obj, ln=att+"_VIS",keyable=True, at="enum", en="off:on:",dv=1)
                     cmds.addAttr(obj, ln=att, keyable=True ,  min=0 , max = rangeVariable  , dv=0 , at='long')
+                    cmds.addAttr(obj, ln=att+"_ROT", keyable=True ,  min=-180 , max = 180  , dv=0 , at='long')
                 else:
                     print 'Ya tiene un atributo en ',obj,' llamado ', att+'_VIS'
             else:
