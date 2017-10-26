@@ -375,7 +375,7 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 	targetLoc_parent = listRelatives( targetLoc.name() , parent=1, fullPath=1 , pa=1)[0]		# query del parent del locator del aimConstraint
 	parent( cnt , targetLoc_parent )															# cnt ahora es hijo del parent del locator
 	parent( targetLoc , cnt )																	# el targetLoc ahora es hijo del cnt
-	maya.mel.eval ('DeleteHistory ' + cnt.name() )														# borro history
+	maya.mel.eval ('DeleteHistory ' + cnt.name() )												# borro history
 	placer3d.scaleX.set(rad)																	# escalas del 3dTexturePlacer
 	placer3d.scaleY.set(rad)
 	placer3d.scaleZ.set(headSize)
@@ -444,12 +444,13 @@ def connProj2LayTexture( projector , layerTex , chNumber  , layeredTextureDic):
 ####### ####### ####### ####### ####### ####### ####### #######
 
 def rig2DFace (*args):
-	rLayeredTexture = create2DFacialRig ( False )
+	rLayeredTexture, rTextLayerDic = create2DFacialRig ( False )
 	print 'se ha creado el lado izquierdo'
-	lLayeredTexture = create2DFacialRig ( True  )
+	print rTextLayerDic
+	lLayeredTexture, lTextLayerDic  = create2DFacialRig ( True  )
 	print 'se ha creado el lado derecho'
+	print lTextLayerDic
 	faceLTX	   = createNode ('layeredTexture' , n='face_LTX' )
-
 	channel = 1 # startingInput : 1
 	for layered in (rLayeredTexture,lLayeredTexture):
 		connectAttr ( layered.outColor  , faceLTX + '.inputs[' + str (channel)+'].color' )
@@ -520,7 +521,7 @@ def create2DFacialRig ( isMirror ):
         if isMirror:
             deleteHelpLocators ()
 
-        return layerTex
+        return layerTex , layeredTextureDic
 
 
     else:
