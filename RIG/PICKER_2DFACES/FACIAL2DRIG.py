@@ -349,16 +349,16 @@ def placerControl(headSize, targetLoc , aimConsNode , placer3d , nameSuf='ZTR' ,
 	elif 'parpado_inf' in targetLoc.name()  :
 		ccLook (cnt,rad*1.2,3,5)
 		changeOverrideColor ( cnt , 18 )
-		cnt.cv[0].setPosition([-5,-2,0],'preTransform')
-		cnt.cv[1].setPosition([0,-3,0],'preTransform')
-		cnt.cv[2].setPosition([5,-2,0],'preTransform')
-		cnt.cv[4].setPosition([-5,-6,0],'preTransform')
-		cnt.cv[3].setPosition([5,-6,0],'preTransform')
+		cnt.cv[0].setPosition([0.50,-0.1,0],'preTransform')
+		cnt.cv[1].setPosition([0,-0.5,0],'preTransform')
+		cnt.cv[2].setPosition([-0.5,-0.1,0],'preTransform')
+		cnt.cv[4].setPosition([0.5,-0.5,0],'preTransform')
+		cnt.cv[3].setPosition([-0.5,-0.5,0],'preTransform')
 	elif 'parpado_sup' in targetLoc.name()  :
 		ccLook ( cnt , rad * 1.2 , 3 , 5 )
 		changeOverrideColor ( cnt , 18 )
-		cnt.cv[3].setPosition([-1,3,0],'preTransform')
-		cnt.cv[4].setPosition([1,3,0],'preTransform')
+		cnt.cv[3].setPosition([-0.5,0.5,0],'preTransform')
+		cnt.cv[4].setPosition([0.5,0.5,0],'preTransform')
 	elif 'extras' in targetLoc.name()  :
 		ccLook (cnt,rad*0.3,1,4)
 		changeOverrideColor ( cnt , 4 )
