@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # @Date:   2017-10-10T11:13:42-03:00
-# @Last modified time: 2017-10-28T02:31:17-03:00
+# @Last modified time: 2017-10-28T05:35:47-03:00
 import random
 import re
 import sys
@@ -33,12 +33,15 @@ def rotLayer(attr='l_ojo', ctr='C_head_01_CTRL',barraUI=None ,*args):
     if barraUI:
         attr = attr + '_ROT'
         if cmds.objExists(ctr + '.' + attr):
-            print barraUI
             val=cmds.floatSlider(barraUI,q=True,value=True)
             cmds.setAttr(ctr + '.' + attr, val)
             setKeyNow(ctr, attr)
-            print 'Capa apagada y key'
+        else:
+            cmds.warning('No existe el atributo ',attr)
 
+def resetSlide(attr,controlAttributos,value,slider,*args):
+    cmds.floatSlider(slider,e=True,value=value)
+    rotLayer(attr,controlAttributos,slider)
 
 # Ocultara el layer en maya.
 def displayLayer(attr='l_ojo', ctr='L_EYE_PUPILA_CNT', *args):
@@ -91,9 +94,9 @@ def getFrame(val=0, attr='r_ojo', ctr='L_EYE_PUPILA_CNT', *args):
         cmds.warning('No existe el atributo o variable ' + attr +
                      ', en el control ' + ctr + ' o necesita de un namespace.')
 
+
+
 # Definimos una interfas grafica para el usuario
-
-
 def botonesUI(directorios='', nameSpace='', sizeButtons=100, parents='', controlAttributos='L_EYE_PUPILA_CNT'):
 
 
@@ -139,8 +142,11 @@ def botonesUI(directorios='', nameSpace='', sizeButtons=100, parents='', control
         frameIn = cmds.frameLayout(label=sideFace.upper(), collapsable=True,collapse=colaps, bgc=color1,parent=cl1)
         cl2 = cmds.columnLayout(cal='left', cat=['left', 0], columnOffset=[ 'left', 0],  adjustableColumn=True, parent=frameIn)
         cmds.button(label='DisplayLayer', command=partial( displayLayer, sideFace, controlAttributos))
+        cmds.rowColumnLayout(numberOfRows=1,adjustableColumn=True)
         barraRotacion=cmds.floatSlider('barra-'+sideFace,min=-180, max=180, value=0, step=1)
         cmds.floatSlider(barraRotacion,edit=True,changeCommand=partial(rotLayer, sideFace, controlAttributos,barraRotacion),dragCommand=partial( rotLayer, sideFace, controlAttributos,barraRotacion))
+        cmds.button( label ='R', bgc=[0.5,0.5,0.4],height=30,width=30,command=partial(resetSlide,sideFace,controlAttributos,0,barraRotacion),annotation='Resetea la rotacion de la capa.')
+        cmds.setParent( '..' )
 
         expres = cmds.frameLayout(  label='Expresiones', collapsable=True, collapse=True)
         scroll2 = cmds.scrollLayout( childResizable=True,height=110,parent=expres)
@@ -171,19 +177,14 @@ def UI(charName='MILO', directorios={}, nameSpace='', sizeButtons=60, controlAtt
     # Pregunto si existe la ventana workspaceControl y si existe la borro
     # antes de crearla nuevamente.
 
-    if cmds.workspaceControl(WorkspaceName, exists=True):
-        cmds.deleteUI(WorkspaceName)
-        print 'Se borro', WorkspaceName
+    if cmds.workspaceControl(WorkspaceName, exists=True): cmds.deleteUI(WorkspaceName)
+
     # ejecuto funcion de interfas y la guardo en un dock
     cmds.workspaceControl(WorkspaceName, initialHeight=600, initialWidth=510, floating=True,
                           retain=False,  dtm=('right', 1))
     b=botonesUI(directorios, nameSpace, sizeButtons, WorkspaceName, controlAttributo)
+    print 'Se creo la interfaze ', WorkspaceName
     return b
-
-def botoneraCnt():
-    cmds.rowColumnLayout(numberOfRows=6)
-    #for key in directorios:
-    #cmds.button()
 
 
 def Picker2D(obj, path='c:/coco', rangeV=30, nameUI='MILO', namespace='', sizeButtons=30, ext='png', keyWord='proxy'):
