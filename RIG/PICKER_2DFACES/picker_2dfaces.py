@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # @Date:   2017-10-10T11:13:42-03:00
-# @Last modified time: 2017-10-27T23:57:04-03:00
+# @Last modified time: 2017-10-28T00:54:38-03:00
 import random
 import re
 import sys
@@ -111,9 +111,9 @@ def botonesUI(directorios='', nameSpace='', sizeButtons=100, parents='', control
     rowGeneral2 = cmds.rowLayout(numberOfColumns=2, columnWidth2=(sizeButtons * cantButColumFila,sizeButtons * cantButColumFila),adjustableColumn2=1, columnAttach=[(1, 'left', 0),(2, 'both', 0)],parent=parents)
     cmds.frameLayout(label='CONTROLES', collapsable=False, bgc=color2,parent=rowGeneral2)
     colBtn = cmds.columnLayout(adjustableColumn=True)
+    cmds.channelBox()
     f2=cmds.frameLayout(label='FACIALES', width=(sizeButtons * cantButColumFila)*3,height=(100*cantButColumFila),bgc=color2,parent=rowGeneral2)
     scroll = cmds.scrollLayout()
-
     rowGeneral3 = cmds.rowLayout(numberOfColumns=3, columnWidth3=(sizeButtons * cantButColumFila,sizeButtons * cantButColumFila, sizeButtons * cantButColumFila),
                                 adjustableColumn3=1, columnAttach=[(1, 'left', 0),(2, 'both', 0), (3, 'both', 0)])
     colRight = cmds.columnLayout(adjustableColumn=True,parent=rowGeneral3)
