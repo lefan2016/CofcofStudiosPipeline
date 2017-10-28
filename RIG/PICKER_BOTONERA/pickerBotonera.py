@@ -1,5 +1,5 @@
 # @Date:   2017-09-04T03:27:19-03:00
-# @Last modified time: 2017-10-27T23:59:33-03:00
+# @Last modified time: 2017-10-28T05:38:11-03:00
 # -*- encoding: utf-8 -*-
 
 import maya.cmds as cmds #libreria de comandos de maya
@@ -27,9 +27,10 @@ def resetTRF(ctr='',*args):
     atributos = {'sx':1, 'sy':1, 'sz':1, 'rx':0, 'ry':0, 'rz':0, 'tx':0, 'ty':0, 'tz':0}
     for attr in atributos:
         try:
-            mc.setAttr('%s.%s'%(crt, attr), atributos[attr])
+            cmds.setAttr(ctr+'.'+attr, atributos[attr])
         except:
             pass
+
 def GetMaxFlow(flows):
     maks_length=0
     for key,value in flows.iteritems():
@@ -57,8 +58,12 @@ def botonesUI(controles='',nameSpace='',wh=[100,100],pariente=None):
             #Solo si existe algo escrito en la variable nameSpace y si es asi le agrego el nameSpace al control.
             if nameSpace is not '':
                 ctrl= nameSpace + ctrl
+            cmds.rowColumnLayout(numberOfRows=1,adjustableColumn=True)
             #Agrego el boton y la funcion, con el nombre del value del diccionario
             cmds.button( label=ctrl,bgc=[r,g,b],height=wh[1],width=wh[0],annotation='( SHIFT+CLICK suma seleccion. )', command=partial(seleccion,ctrl))
+            cmds.button( label ='R', bgc=[0.5,0.5,0.4],height=wh[1],width=30,command=partial(resetTRF,ctrl),annotation='Resetea las transformaciones.')
+            cmds.setParent( '..' )
+            
 
 def UI(charName,controles={},nameSpace=''):
     #variable que contiene el nombre de dockControl
