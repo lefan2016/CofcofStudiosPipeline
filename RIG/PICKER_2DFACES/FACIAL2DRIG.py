@@ -110,7 +110,7 @@ def createAimSystem ( systemName , follower , target ,  headBBoxCenter ):
 	# parentando a la carpeta general del sistema.
 	parent ( controlGrp_ , locUpGrp_ , ztrOffTrf3DPlacer[0] , systemGrp_ )
 	# constraint : projection mira al locator target
-	aimConst=aimConstraint( locAim ,ztrOffTrf3DPlacer[1],mo=0,n=locAim.name()+'_AIMC',aim=[0,0,1],wut='object',wuo=upLocGroup[1] )
+	aimConst=aimConstraint( locAim ,ztrOffTrf3DPlacer[1],mo=0,n=locAim.name()+'_ACNS',aim=[0,0,1],wut='object',wuo=upLocGroup[1] )
 	move2 ( target , targetGroup[1] )
 	return locAim , aimConst , targetGroup[1]
 
