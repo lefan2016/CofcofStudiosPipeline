@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 # @Date:   2017-10-10T11:13:42-03:00
-# @Last modified time: 2017-10-25T16:12:31-03:00
+# @Last modified time: 2017-10-27T23:57:04-03:00
 import random
 import re
 import sys
 from functools import partial
 
-import UTILITIES
+import UTILITIES #necesaria para funciones de diccionario y archivos
+import pickerBotonera#Necesaria para el picker de controles
+reload(pickerBotonera)
 import maya.cmds as cmds
 import pymel.core as pm
 
@@ -21,6 +23,7 @@ import pymel.core as pm
 #     print 'NO SE PUDO IMPORTAR EL MODULO'
 
 
+
 def setKeyNow(obj='C_head_01_CTRL', attr='r_ojo'):
     currentTimeX = cmds.currentTime(query=True)
     cmds.setKeyframe(obj, attribute=attr, t=[currentTimeX, currentTimeX])
@@ -31,9 +34,11 @@ def rotLayer(attr='l_ojo', ctr='C_head_01_CTRL',barraUI=None ,*args):
     if barraUI:
         attr = attr + '_ROT'
         if cmds.objExists(ctr + '.' + attr):
+            print barraUI
             val=cmds.floatSlider(barraUI,q=True,value=True)
             cmds.setAttr(ctr + '.' + attr, val)
             setKeyNow(ctr, attr)
+            print 'Capa apagada y key'
 
 
 # Ocultara el layer en maya.
@@ -92,19 +97,29 @@ def getFrame(val=0, attr='r_ojo', ctr='L_EYE_PUPILA_CNT', *args):
 
 def botonesUI(directorios='', nameSpace='', sizeButtons=100, parents='', controlAttributos='L_EYE_PUPILA_CNT'):
 
-    # Contengo todo en un solo scroll grande
-    scroll = cmds.scrollLayout( parent=parents)
-    cantButColumFila=7
+
     # Creo una fila con 3 columnos grandes
-    rowGeneral = cmds.rowLayout(numberOfColumns=3, columnWidth3=(sizeButtons * cantButColumFila, sizeButtons * cantButColumFila, sizeButtons * cantButColumFila),
-                                adjustableColumn3=1, columnAttach=[(1, 'left', 0), (2, 'both', 0), (3, 'both', 0)])
-    colRight = cmds.columnLayout(adjustableColumn=True, parent=rowGeneral)
-    colMid = cmds.columnLayout(adjustableColumn=True, parent=rowGeneral)
-    colLeft = cmds.columnLayout(adjustableColumn=True, parent=rowGeneral)
+    cantButColumFila=7
     # color1=[0.24,0.31,0.24]
     color1 = random.uniform(0.0, 1.0), random.uniform(
         0.0, 1.0), random.uniform(0.0, 1.0)
     color2 = [0.3, 0.3, 0.3]
+
+    # Contengo todo en un solo scroll grande
+
+
+    rowGeneral2 = cmds.rowLayout(numberOfColumns=2, columnWidth2=(sizeButtons * cantButColumFila,sizeButtons * cantButColumFila),adjustableColumn2=1, columnAttach=[(1, 'left', 0),(2, 'both', 0)],parent=parents)
+    cmds.frameLayout(label='CONTROLES', collapsable=False, bgc=color2,parent=rowGeneral2)
+    colBtn = cmds.columnLayout(adjustableColumn=True)
+    f2=cmds.frameLayout(label='FACIALES', width=(sizeButtons * cantButColumFila)*3,height=(100*cantButColumFila),bgc=color2,parent=rowGeneral2)
+    scroll = cmds.scrollLayout()
+
+    rowGeneral3 = cmds.rowLayout(numberOfColumns=3, columnWidth3=(sizeButtons * cantButColumFila,sizeButtons * cantButColumFila, sizeButtons * cantButColumFila),
+                                adjustableColumn3=1, columnAttach=[(1, 'left', 0),(2, 'both', 0), (3, 'both', 0)])
+    colRight = cmds.columnLayout(adjustableColumn=True,parent=rowGeneral3)
+    colMid = cmds.columnLayout(adjustableColumn=True,parent=rowGeneral3)
+    colLeft = cmds.columnLayout(adjustableColumn=True,parent=rowGeneral3)
+
 
     # creo los botones recoriendo el diccionario que creamos
     for key in directorios:
@@ -112,10 +127,10 @@ def botonesUI(directorios='', nameSpace='', sizeButtons=100, parents='', control
         sideFace = key.split('\\')[-1]
         if 'l_' in sideFace:
             sideParent = colLeft
-            colaps = False
+            colaps = True
         elif 'r_' in sideFace:
             sideParent = colRight
-            colaps = False
+            colaps = True
         else:
             sideParent = colMid
             colaps = True
@@ -123,15 +138,14 @@ def botonesUI(directorios='', nameSpace='', sizeButtons=100, parents='', control
         # Creo una columna para los botones
         cl1 = cmds.columnLayout(adjustableColumn=True,parent=sideParent)
         frameIn = cmds.frameLayout(label=sideFace.upper(), collapsable=True,collapse=colaps, bgc=color1,parent=cl1)
-
-        cl2 = cmds.columnLayout(cal='right', cat=['both', 0], columnOffset=[ 'both', 0],  adjustableColumn=True, parent=frameIn)
+        cl2 = cmds.columnLayout(cal='left', cat=['left', 0], columnOffset=[ 'left', 0],  adjustableColumn=True, parent=frameIn)
         cmds.button(label='DisplayLayer', command=partial( displayLayer, sideFace, controlAttributos))
         barraRotacion=cmds.floatSlider('barra-'+sideFace,min=-180, max=180, value=0, step=1)
         cmds.floatSlider(barraRotacion,edit=True,changeCommand=partial(rotLayer, sideFace, controlAttributos,barraRotacion),dragCommand=partial( rotLayer, sideFace, controlAttributos,barraRotacion))
 
-        expres = cmds.frameLayout(  label='Expresiones', height=150, collapsable=True, collapse=False)
-        scroll2 = cmds.scrollLayout( childResizable=True,horizontalScrollBarThickness=sizeButtons,verticalScrollBarThickness=sizeButtons,parent=expres)
-        rcl1=cmds.rowColumnLayout(numberOfRows=6, bgc=color2)
+        expres = cmds.frameLayout(  label='Expresiones', collapsable=True, collapse=False)
+        scroll2 = cmds.scrollLayout( childResizable=True,height=110,parent=expres)
+        rcl1=cmds.rowColumnLayout(numberOfRows=3, bgc=color2)
         # Para diferenciar las carpeas o frames le pongo diferentes colores
         # r,g,b=random.uniform(0.0,1.0),random.uniform(0.0,1.0),random.uniform(0.0,1.0)
         # creo por cada file un boton
@@ -149,9 +163,12 @@ def botonesUI(directorios='', nameSpace='', sizeButtons=100, parents='', control
                               annotation='( SHIFT+CLICK setea la misma cara opuesta. )', command=partial(getFrame, val, sideFace, controlAttributos))
 
 
+    return colBtn
+
+
 def UI(charName='MILO', directorios={}, nameSpace='', sizeButtons=60, controlAttributo='L_EYE_PUPILA_CNT'):
     # variable que contiene el nombre de dockControl
-    WorkspaceName = '2DPICKER_UI_' + charName
+    WorkspaceName = '2DPICKER_UI-> ' + charName
     # Pregunto si existe la ventana workspaceControl y si existe la borro
     # antes de crearla nuevamente.
 
@@ -159,10 +176,15 @@ def UI(charName='MILO', directorios={}, nameSpace='', sizeButtons=60, controlAtt
         cmds.deleteUI(WorkspaceName)
         print 'Se borro', WorkspaceName
     # ejecuto funcion de interfas y la guardo en un dock
-    cmds.workspaceControl(WorkspaceName,heightProperty='fixed', initialHeight=600, initialWidth=500, floating=True,
+    cmds.workspaceControl(WorkspaceName, initialHeight=600, initialWidth=510, floating=True,
                           retain=False,  dtm=('right', 1))
-    botonesUI(directorios, nameSpace, sizeButtons,
-              WorkspaceName, controlAttributo)
+    b=botonesUI(directorios, nameSpace, sizeButtons, WorkspaceName, controlAttributo)
+    return b
+
+def botoneraCnt():
+    cmds.rowColumnLayout(numberOfRows=6)
+    #for key in directorios:
+    #cmds.button()
 
 
 def Picker2D(obj, path='c:/coco', rangeV=30, nameUI='MILO', namespace='', sizeButtons=30, ext='png', keyWord='proxy'):
@@ -175,27 +197,25 @@ def Picker2D(obj, path='c:/coco', rangeV=30, nameUI='MILO', namespace='', sizeBu
     # archivos en FACES folder.
     directorios = UTILITIES.dirs_files_dic(path, ext, keyWord)
     # llamo a la funcion la cual ejecuta todo el resto.
-    UI(nameUI, directorios, namespace, 30, obj)
-
+    uip=UI(nameUI, directorios, namespace, 30, obj)
+    return uip
 '''
-#ASI SE UTILIZA ESTA INTERFACE
-import maya.cmds as cmds
-import pymel.core as pm
-path = r'F:\Repositores\GitHub\CofcofStudiosPipeline\RIG\PICKER_2DFACES'
-if not path in sys.path:
-    sys.path.append(path)
-try:
-    import picker_2dfaces#Modulo necesario para que funcione todo
-    reload(picker_2dfaces)
-except (RuntimeError, TypeError, NameError, IOError):
-    print 'NO SE PUDO IMPORTAR EL MODULO'
-
 nameUI = 'MILO' #Nombre que utilizara la interface.
 nameSpace = '' #NameSpace del personaje.
+#Este es el nombre que le daremos a nuestra interfas el cual tiene que ser diferente por cada personaje
+name='GABO_2'
+#lista de controles
+controles={'L_EYE':['l_Eye_CNT','l_eyelid_sup_CNT','l_eyelid_inf_CNT','l_extras_CNT','l_pupil_CNT'],
+           'R_EYE':['r_Eye_CNT','r_eyelid_sup_CNT','r_eyelid_inf_CNT','r_extras_CNT','l_pupil_CNT'],
+           'OTROS':['c_Pupils_CNT','extras_CNT'],
+           'BOCA':['lengua_CNT','b_diente_CNT','a_diente_CNT','boca_CNT'],
+           'CABEZA':['C_head_01_CTRL']}
+
 obj='C_head_01_CTRL' #objeto que contiene los atributos animables.
 path = 'O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES' #Carpeta ordenada donde se contiene los arhivos proxys.
 rangeVariable=60 #Cantidad maxima de archivos que contiene una carpeta de proxy.
 sizeButtons=30 #Tamaño de botonera
 
-Picker2D(obj,path,rangeVariable,nameUI,nameSpace,sizeButtons)#Funcion que contiene toda la programacion necesaria para la UI
+pickerUI=Picker2D(obj,path,rangeVariable,nameUI,nameSpace,sizeButtons)#Funcion que contiene toda la programacion necesaria para la UI
+pickerBotonera.botonesUI(controles,nameSpace,[100,20],pickerUI)#Picker de controles
 '''
