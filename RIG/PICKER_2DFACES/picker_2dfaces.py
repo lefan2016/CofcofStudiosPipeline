@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # @Date:   2017-10-10T11:13:42-03:00
-# @Last modified time: 2017-10-28T00:54:38-03:00
+# @Last modified time: 2017-10-28T02:31:17-03:00
 import random
 import re
 import sys
@@ -21,7 +21,6 @@ import pymel.core as pm
 #     reload(UTILITIES)
 # except (RuntimeError, TypeError, NameError, IOError):
 #     print 'NO SE PUDO IMPORTAR EL MODULO'
-
 
 
 def setKeyNow(obj='C_head_01_CTRL', attr='r_ojo'):
@@ -127,10 +126,10 @@ def botonesUI(directorios='', nameSpace='', sizeButtons=100, parents='', control
         sideFace = key.split('\\')[-1]
         if 'l_' in sideFace:
             sideParent = colLeft
-            colaps = True
+            colaps = False
         elif 'r_' in sideFace:
             sideParent = colRight
-            colaps = True
+            colaps = False
         else:
             sideParent = colMid
             colaps = True
@@ -143,7 +142,7 @@ def botonesUI(directorios='', nameSpace='', sizeButtons=100, parents='', control
         barraRotacion=cmds.floatSlider('barra-'+sideFace,min=-180, max=180, value=0, step=1)
         cmds.floatSlider(barraRotacion,edit=True,changeCommand=partial(rotLayer, sideFace, controlAttributos,barraRotacion),dragCommand=partial( rotLayer, sideFace, controlAttributos,barraRotacion))
 
-        expres = cmds.frameLayout(  label='Expresiones', collapsable=True, collapse=False)
+        expres = cmds.frameLayout(  label='Expresiones', collapsable=True, collapse=True)
         scroll2 = cmds.scrollLayout( childResizable=True,height=110,parent=expres)
         rcl1=cmds.rowColumnLayout(numberOfRows=3, bgc=color2)
         # Para diferenciar las carpeas o frames le pongo diferentes colores
