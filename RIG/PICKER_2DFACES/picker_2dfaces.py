@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 # @Date:   2017-10-10T11:13:42-03:00
-# @Last modified time: 2017-10-28T05:35:47-03:00
+# @Last modified time: 2017-10-29T03:47:33-03:00
 import random
 import re
 import sys
 from functools import partial
 
 import UTILITIES #necesaria para funciones de diccionario y archivos
-import pickerBotonera#Necesaria para el picker de controles
-reload(pickerBotonera)
 import maya.cmds as cmds
 import pymel.core as pm
 
@@ -187,7 +185,7 @@ def UI(charName='MILO', directorios={}, nameSpace='', sizeButtons=60, controlAtt
     return b
 
 
-def Picker2D(obj, path='c:/coco', rangeV=30, nameUI='MILO', namespace='', sizeButtons=30, ext='png', keyWord='proxy'):
+def picker2D(obj, path='c:/coco', rangeV=30, nameUI='MILO', namespace='', sizeButtons=30, ext='png', keyWord='proxy'):
     if namespace:  # si tiene namespace se le agrega al nombre
         obj = namespace + ':' + obj
     # Con esta funcion creo los atributos en el objeto indicado
