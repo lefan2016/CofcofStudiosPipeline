@@ -1,14 +1,14 @@
 # @Date:   2017-10-26T01:08:44-03:00
-# @Last modified time: 2017-10-30T02:00:42-03:00
+# @Last modified time: 2017-11-01T00:37:54-03:00
 
 
 
-import UTILITIES
+import picker2dUi.UTILITIES as UTILITIES
 reload(UTILITIES)
 import pymel.core as pm
 controler='C_head_01_CTRL'
 nameSpace=''
-path='O:\EMPRESAS\RIG_FACE2D\PERSONAJES\MILO\FACES'
+path='O:\EMPRESAS\RIG_FACE2D\PERSONAJES\FANI\FACES'
 extension='png'
 dirs=UTILITIES.dirs_files_dic(path,extension)
 #objeto que contiene los atributos animables.
@@ -30,7 +30,7 @@ for subdir in dirs:
     att = subdir.split('\\')[-1]
     if nameSpace:
         controler=nameSpace+':'+controler
-    if cmds.objExists(obj+'.'+att):#Si contiene el mismo file y el nombre del atributo coincide se conectara
+    if cmds.objExists(controler+'.'+att):#Si contiene el mismo file y el nombre del atributo coincide se conectara
         if fileNodes:
             for i in fileNodes:
                 filePath = cmds.getAttr(i+'.fileTextureName')
@@ -39,13 +39,15 @@ for subdir in dirs:
                     if filePath == fileInfile:
                         #Conecto el dato de frames del control con los frames de la imagen
                         if not cmds.isConnected( controler+'.'+att , i+'.'+'frameExtension' ):
-                            c=cmds.connectAttr(controler+'.'+att , i+'.'+'frameExtension', f=True)
+                            cmds.connectAttr(controler+'.'+att , i+'.'+'frameExtension', f=True)
                             printes[controler+'.'+att+' ---> ']=str(i)+'.'+'frameExtension'
+    else:
+        printes[controler+'.'+att +' ---> ']='No existe el atributo para conectar el frame'
 
 #---------------------------------------------------------------------------------------------------------
 #Conecta el atributo de visible de capa con las variables correspondiente de la cara en el control principal
     if projections:
-        if cmds.objExists(obj+'.'+att+'_VIS'):
+        if cmds.objExists(controler+'.'+att+'_VIS'):
             for PRJ in projections:
                 fileNode=cmds.listConnections(PRJ+'.image')[0]
                 if fileNode:
@@ -59,7 +61,7 @@ for subdir in dirs:
 #---------------------------------------------------------------------------------------------------------
 #Conecta el atributo de rotacion de capa con las variables correspondiente de la cara en el control principal
     if Aims:
-        if cmds.objExists(obj+'.'+att+'_ROT'):
+        if cmds.objExists(controler+'.'+att+'_ROT'):
             for aim in Aims:
                 if aim.startswith(att): #si existe el nombre del atributo en el nombre del constraint
                     if not cmds.isConnected( controler+'.'+att+'_ROT' , str(aim)+'.offset.offsetZ'):
