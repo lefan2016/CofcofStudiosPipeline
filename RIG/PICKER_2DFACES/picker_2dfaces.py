@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # @Date:   2017-10-10T11:13:42-03:00
-# @Last modified time: 2017-11-01T00:25:11-03:00
+# @Last modified time: 2017-11-14T18:56:21-03:00
 import random
 import re
 import sys
@@ -16,7 +16,7 @@ reload(pickerBotonera)
 import maya.cmds as cmds
 import pymel.core as pm
 
-# path = r'F:\Repositores\GitHub\CofcofStudiosPipeline\RIG\UTIL'
+#path = r'F:\Repositores\GitHub\CofcofStudiosPipeline\RIG\UTIL'
 #
 # if not path in sys.path:
 #     sys.path.append(path)
@@ -90,6 +90,15 @@ def getFrame(val=0, attr='r_ojo', ctr='L_EYE_PUPILA_CNT', *args):
         cmds.warning('No existe el atributo o variable ' + attr +
                      ', en el control ' + ctr + ' o necesita de un namespace.')
 
+def ordenarLeftRighMidDiccionario(directorios={}):
+    newDic=dict()
+    for key,value in directorios.items():
+        name = key.split('\\')[-1]
+        if 'l_' in name: newDic.setdefault(key,[]).append(value)
+        elif 'r_' in name:  newDic.setdefault(key,[]).append(value)
+        else: newDic.setdefault(key,[]).append(value)
+    #sorted(newDic)
+    return newDic
 
 def colapsador(*args):
     global uis
@@ -113,7 +122,11 @@ def botonesUI(directorios='', nameSpace='', sizeButtons=100, parents='', control
     columMaster=cmds.columnLayout(adjustableColumn=True,parent=parents)
     # Contengo todo en un solo scroll grande
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    cmds.image(w = 122, h = 35,backgroundColor=[0,0,0], image = dir_path+'\cof_img.xpm',parent=columMaster)
+    if os.path.isfile(dir_path+'\cof_img.xpm'):
+        cmds.symbolButton( image=dir_path+'\cof_img.xpm', width=122, height=35, backgroundColor=[0,0,0],
+                          annotation=('www.cofcofstudios.com'), command="cmds.launch(web='http://cofcofstudios.com')",parent=columMaster)
+    else:
+        cmds.image(w = 122, h = 35,backgroundColor=[0,0,0],parent=columMaster)
 
     rowGeneral2 = cmds.rowLayout(numberOfColumns=2,height=heightW, adjustableColumn=True ,columnWidth2=(sizeButtons * cantButColumFila,470), columnAttach=[(1, 'both', 0),(2, 'both', 0)])
     fm1=cmds.frameLayout(label='CONTROLES', bgc=[0,0,0],parent=rowGeneral2)
@@ -132,24 +145,13 @@ def botonesUI(directorios='', nameSpace='', sizeButtons=100, parents='', control
 
 
     directorios = sorted_x = OrderedDict(sorted(directorios.items(), key=itemgetter(1)))#Ordena los value del diccionario para que muestre ordenada la lista
+    #directorios = ordenarLeftRighMidDiccionario(directorios)
 
     # creo los botones recoriendo el diccionario que creamos
-    for key in directorios:
-        # Ordeno los frames dependiendo de la letra que contengan las carpetas
-        sideFace = key.split('\\')[-1]
-        if 'l_' in sideFace:
-            sideParent = colLeft
-            colaps = True
-        elif 'r_' in sideFace:
-            sideParent = colRight
-            colaps = True
-        else:
-            sideParent = colMid
-            colaps = True
-
+    def columnForFolderUI(botonesArray=[],sideFace='l_ojo', controlAttributos='L_EYE_PUPILA_CNT',sideParent=None):
         # Creo una columna para los botones columnAttach=[(1, 'both', 0),(2, 'right', 0)],
         cl1 = cmds.columnLayout(adjustableColumn=True,columnAttach=['left', 0],parent=sideParent)
-        frameIn = cmds.frameLayout(label=sideFace.upper(), collapsable=True,collapse=colaps, bgc=color3, parent=cl1)
+        frameIn = cmds.frameLayout(label=sideFace.upper(), collapsable=True, bgc=color3, parent=cl1)
         cl2 = cmds.columnLayout(cal='left', cat=['both', 0], columnOffset=[ 'left', 0],  adjustableColumn=True, parent=frameIn)
         cmds.button(label='DisplayLayer', command=partial( displayLayer, sideFace, controlAttributos))
         cmds.rowColumnLayout(numberOfRows=1,adjustableColumn=True)
@@ -157,7 +159,7 @@ def botonesUI(directorios='', nameSpace='', sizeButtons=100, parents='', control
         cmds.floatSlider(barraRotacion,edit=True,changeCommand=partial(rotLayer, sideFace, controlAttributos,barraRotacion),dragCommand=partial( rotLayer, sideFace, controlAttributos,barraRotacion))
         cmds.button( label ='R', bgc=[0.5,0.5,0.4],height=30,width=30,command=partial(resetSlide,sideFace,controlAttributos,0,barraRotacion),annotation='Resetea la rotacion de la capa.')
         cmds.setParent( '..' )
-        f3=cmds.frameLayout(  label='Expresiones', collapsable=True, collapse=True)
+        f3=cmds.frameLayout(  label='Expresiones', collapsable=True, collapse=False)
         scroll2 = cmds.scrollLayout( childResizable=True,height=110)
         rcl1=cmds.rowColumnLayout(numberOfRows=3, bgc=color2)
         uis.setdefault('scrolles', []).append(frameIn)
@@ -168,7 +170,7 @@ def botonesUI(directorios='', nameSpace='', sizeButtons=100, parents='', control
         # Para diferenciar las carpeas o frames le pongo diferentes colores
         # r,g,b=random.uniform(0.0,1.0),random.uniform(0.0,1.0),random.uniform(0.0,1.0)
         # creo por cada file un boton
-        for ctrl in directorios[key]:
+        for ctrl in botonesArray:
             # valFrame=[s.zfill(2) for s in re.findall(r'\b\d+\b', img)]
             val = [int(s) for s in re.findall(r'\b\d+\b', ctrl)][0]
             nameImg=ctrl
@@ -179,9 +181,22 @@ def botonesUI(directorios='', nameSpace='', sizeButtons=100, parents='', control
             # Agrego el boton y la funcion, con el nombre del value del
             # diccionario
             cmds.symbolButton(ctrl, image=key + '\\' + nameImg, width=sizeButtons, height=sizeButtons, backgroundColor=color2,
-                              annotation=('Frame N°: '+str(val)+'\n Shift + Click: Lado Opuesto.'), command=partial(getFrame, val, sideFace, controlAttributos))
+                              annotation=('Frame Num: '+str(val)+'\n Shift + Click: Lado Opuesto.'), command=partial(getFrame, val, sideFace, controlAttributos))
+
+    #por cada carpeta se creara un contenedor de botones
+    for key in directorios:
+        # Ordeno los frames dependiendo de la letra que contengan las carpetas
+        sideFace = key.split('\\')[-1]
+        if sideFace in ['l_parpado_sup','l_ojo','l_pupila','l_parpado_inf','l_cachete','l_extras']:
+            columnForFolderUI(directorios[key], sideFace, controlAttributos, colLeft)
+        elif sideFace in ['r_parpado_sup','r_ojo','r_pupila','r_parpado_inf','r_cachete','r_extras']:
+            columnForFolderUI(directorios[key], sideFace, controlAttributos, colRight)
+        elif sideFace in ['boca','a_diente','b_diente','lengua','extras']:
+            columnForFolderUI(directorios[key], sideFace, controlAttributos, colMid)
+
+
     #cmds.button(btnc,e=True,command=colapsador(uis))
-    return [columna1,uis,heightW]
+    return [columna1,uis,heightW,]
 
 
 def UI(charName='MILO', directorios={}, nameSpace='', sizeButtons=60, controlAttributo='L_EYE_PUPILA_CNT'):
@@ -200,19 +215,24 @@ def UI(charName='MILO', directorios={}, nameSpace='', sizeButtons=60, controlAtt
     return b
 
 
+
+
 def picker2D(obj, path='c:/coco', rangeV=30, nameUI='MILO', namespace='', sizeButtons=30, ext='png', keyWord='proxy'):
     if namespace:  # si tiene namespace se le agrega al nombre
         obj = namespace + ':' + obj
     if cmds.objExists(obj):
-        # Con esta funcion creo los atributos en el objeto indicado
-        UTILITIES.addAttr_FromFolders(obj, path, ext, keyWord, rangeV)
+        if os.path.isdir(path):
+            # Con esta funcion creo los atributos en el objeto indicado
+            UTILITIES.addAttr_FromFolders(obj, path, ext, keyWord, rangeV)
 
-        # Con esta funcion creo la interface dependiendo la cantidad de carpetas y
-        # archivos en FACES folder.
-        directorios = UTILITIES.dirs_files_dic(path, ext, keyWord)
-        # llamo a la funcion la cual ejecuta todo el resto.
-        uip=UI(nameUI, directorios, namespace, 30, obj)
-        return uip
+            # Con esta funcion creo la interface dependiendo la cantidad de carpetas y
+            # archivos en FACES folder.
+            directorios = UTILITIES.dirs_files_dic(path, ext, keyWord)
+            # llamo a la funcion la cual ejecuta todo el resto.
+            uip=UI(nameUI, directorios, namespace, 30, obj)
+            return uip
+        else:
+            cmds.error('No existe el directorio ', path)
     else:
         cmds.error('No se encontro ', obj)
 '''

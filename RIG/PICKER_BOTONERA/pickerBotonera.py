@@ -1,5 +1,5 @@
 # @Date:   2017-10-27T00:50:11-03:00
-# @Last modified time: 2017-11-01T00:25:32-03:00
+# @Last modified time: 2017-11-14T18:56:23-03:00
 # -*- coding: utf-8 -*-
 import maya.cmds as cmds #libreria de comandos de maya
 from functools import partial #libreria para usar funcion partial la cual nos permitira reutilizar argumentos
@@ -29,7 +29,7 @@ def resetTRF(ctr='',*args):
             pass
 
 def resetAll(controles=[]):
-    pass
+    cmds.warning('Boton en desarrollo.')
 
 
 def GetMaxFlow(flows):
@@ -77,4 +77,4 @@ def UI(charName,controles={},nameSpace=''):
     else:
         #ejecuto funcion de interfas y la guardo en un dock
         cmds.workspaceControl(WorkspaceName,initialHeight=500, floating=False, retain=False, uiScript="botonesUI(controles,nameSpace)",dtm=('right', 1));
-UI(name,controles,nameSpace)#llamo a la funcion la cual ejecuta todo el resto.
+#UI(name,controles,nameSpace)#llamo a la funcion la cual ejecuta todo el resto.
