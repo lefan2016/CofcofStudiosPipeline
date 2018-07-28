@@ -48,7 +48,7 @@ def addAttr_FromFolders( obj , path , ext , keyWord , rangeVariable=31): #del ar
 
 
 
-def dirs_files_dic(mypath, ext, keyWord='',sort=True):
+def dirs_files_dic(mypath, ext, keyWord='', sort=True):
     '''
     type (string) mypath: Ruta de carpeta.
     type (string) ext: contiene el tipo de extencion a buscar.
@@ -58,28 +58,25 @@ def dirs_files_dic(mypath, ext, keyWord='',sort=True):
     Example:
         dirs_files_dic('O:\EMPRESAS\RIG_FACE2D\ScriptingGuideRig\Maps','png', 'proxy')
     '''
-    if os.path.isdir(mypath):
-        returnDic = {}
-        dirs = [f for f in os.listdir(mypath) if not isfile(join(mypath, f))]
-        if sort:
-            dirs=sorted(dirs)
-        for subdir in dirs:
-            subdir = mypath + '\\' + subdir
-            onlyfiles = [f for f in os.listdir(subdir) if ( isfile(join(subdir, f)) and os.path.splitext(f)[1] == '.' + ext) and keyWord in f]
-            if sort:
-                onlyfiles=sorted(onlyfiles)
-            if not keyWord=='':
-                fileText = []
-                for f in onlyfiles:
-                    if keyWord in f:
-                        fileText.append(f)
-                returnDic[subdir] = fileText
-            else:
-                returnDic[subdir] = onlyfiles
-        return returnDic
-    else:
-        print 'No existe la direccion: ', mypath
+
+    # exit early
+    if os.path.isdir(mypath) is False:
+        print('No existe la direccion: ', mypath)
         return False
+
+    # get dirs
+    dirs = [f for f in os.listdir(mypath) if os.path.isdir(join(mypath, f))]
+    dirs = sorted(dirs) if sort else dirs
+
+    # get subdirs
+    subdirs = [os.path.join(mypath, dir_) for dir_ in dirs]
+
+    # collect dict{subdir: files, ...}
+    returnDic = {}
+    for subdir in subdirs:
+        files = [f for f in os.listdir(subdir) if isfile(join(subdir, f)) and f.endswith(ext) and keyWord in f]
+        returnDic[subdir] = sorted(files) if sort else files
+    return returnDic
 
 
 def createIfNeeded( node_Name , node_Type ):
