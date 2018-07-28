@@ -1,3 +1,8 @@
+# @Date:   2017-08-17T21:41:34-03:00
+# @Last modified time: 2018-03-30T18:45:59-03:00
+
+
+
 # -*- coding: utf-8 -*-
 import pymel.core as pm
 import re
@@ -168,7 +173,7 @@ def creaLocWithJointsInPositionVertexOfCurve(curveActuals=None, step=1, rebuild=
 					locs.append(loc)
 					[cmds.setAttr(loc+'.localScale'+axi,0.2) for axi in ['X','Y','Z']]
 					cmds.connectAttr(poCi + ".position",loc+'.translate',f=1)
-					jnt=cmds.joint(n=newName+str(vtx)+'_JNT',rad=0.3)
+					jnt=cmds.joint(n=newName+str(vtx)+'_JSK',rad=0.3)
 
 					ztr=extraControl([jnt],'ZTR','TRF','CNT',radius=0.4)
 					cmds.parentConstraint( loc,ztr[0],name=str(ztr[0])+'_HCNS', maintainOffset=False)
