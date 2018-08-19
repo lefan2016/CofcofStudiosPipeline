@@ -8,7 +8,7 @@ import maya.mel as mel
 
 
 
-        
+
 
 def testAnimation():
     sel=pm.ls(sl=1)
@@ -21,6 +21,7 @@ def testAnimation():
     attsHistory = pm.channelBox ( cBox , q=1,sha=1 )
     attsOut     = pm.channelBox ( cBox , q=1,soa=1 )
     atts = []
+    relativeAnimation = cmds.checkBox ('cb_relativeAnim',q=1,value=1)
     for at in ( attsShape , attsMain , attsHistory , attsOut ):
         if at:
             atts.extend ( at   )
@@ -30,9 +31,12 @@ def testAnimation():
 
         for s in sel:
             for at in range( len(atts) ) :
+                actualAttValue = (0,pm.getAttr ( s + '.' + atts[at] ))[relativeAnimation==True ]
                 for k in range(len(keysValues)):
+                    print 'valor:' + keysValues[k]
                     currFrame = pm.currentTime( query=True )
-                    pm.setAttr ( s + '.' + atts[at] , int ( keysValues[k] ) )
+                    attValue =   actualAttValue + int ( keysValues[k] )
+                    pm.setAttr ( s + '.' + atts[at] , attValue )
                     pm.setKeyframe ( s + '.' + atts[at] )
                     pm.currentTime( currFrame+ int(keysSeparation) , edit=True )
 
@@ -48,12 +52,13 @@ def UI():
     rcl=cmds.columnLayout(  )
     r1l=cmds.rowLayout (nc=2 , p=rcl)
     b1=cmds.text(label = "Values", w=150, p=r1l )
-    cmds.textField('keyValues',width=300, p=r1l)
+    cmds.textField('keyValues',width=300, p=r1l,text='0,2,-2,0')
     r1l=cmds.rowLayout (nc=2 , p=rcl)
     b1=cmds.text(label = "Keys separation", w=150, p=r1l )
-    cmds.textField('keysSeparation',width=300, p=r1l)
+    cmds.textField('keysSeparation',width=300, p=r1l,text='10')
 
     r2l=cmds.rowLayout (nc=6 , p=rcl)
+    cmds.checkBox ('cb_relativeAnim',label='relative')
     b2=cmds.button(label = "Animate", w=450 , command = 'testAnimation()', bgc = (0.5, 0.8, 0.1) , p=r2l )
 
 
