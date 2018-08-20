@@ -1,5 +1,5 @@
 # @Date:   2018-08-20T14:57:26-03:00
-# @Last modified time: 2018-08-20T20:55:12-03:00
+# @Last modified time: 2018-08-20T20:56:50-03:00
 
 
 
@@ -37,7 +37,7 @@ def testAnimation(arg):
             atts.extend ( at   )
 
     if sel and keysValues and keysSeparation and atts:
-    cmds.refresh(su=True)#Disable refresh
+        cmds.refresh(su=True)#Disable refresh
         for s in sel:
             for at in range( len(atts) ) :
                 actualAttValue = (0,pm.getAttr ( s + '.' + atts[at] ))[relativeAnimation==True ]
@@ -48,7 +48,7 @@ def testAnimation(arg):
                     pm.setAttr ( s + '.' + atts[at] , attValue )
                     pm.setKeyframe ( s + '.' + atts[at] )
                     pm.currentTime( currFrame+ int(keysSeparation) , edit=True )
-    cmds.refresh(su=False)#Enable refresh
+        cmds.refresh(su=False)#Enable refresh
 
     else:
         pm.warning ('Be sure you have selected objects and attributes to animate.')
