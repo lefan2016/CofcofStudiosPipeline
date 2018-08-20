@@ -1,3 +1,9 @@
+# @Date:   2018-08-20T14:57:26-03:00
+# @Last modified time: 2018-08-20T15:02:55-03:00
+
+
+
+# -*- encoding: utf-8 -*-
 #Gabo Salinas
 #26/06/18
 #this tool animates channelBox selected attributes with input values. keyframes are
@@ -5,12 +11,16 @@
 import maya.cmds as cmds
 import pymel.core as pm
 import maya.mel as mel
-
-
-
-
-
-def testAnimation():
+'''
+import sys
+path=r'F:\Repositores\GitHub\CofcofStudiosPipeline\RIG\testAnim'
+if not path in sys.path:
+    sys.path.append(path)
+import testAnim
+reload(testAnim)
+sys.path.remove(path)
+'''
+def testAnimation(arg):
     sel=pm.ls(sl=1)
     keysValues     = cmds.textField ( 'keyValues' , q=1,text=1).split(',')
     keysSeparation = cmds.textField ( 'keysSeparation' , q=1,text=1)
@@ -59,7 +69,7 @@ def UI():
 
     r2l=cmds.rowLayout (nc=6 , p=rcl)
     cmds.checkBox ('cb_relativeAnim',label='relative')
-    b2=cmds.button(label = "Animate", w=450 , command = 'testAnimation()', bgc = (0.5, 0.8, 0.1) , p=r2l )
+    b2=cmds.button(label = "Animate", w=450 , command = testAnimation, bgc = (0.5, 0.8, 0.1) , p=r2l )
 
 
     cmds.showWindow(w)
