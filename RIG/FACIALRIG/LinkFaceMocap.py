@@ -1,5 +1,5 @@
 # @Date:   2018-04-16T21:50:11-03:00
-# @Last modified time: 2018-08-25T19:09:46-03:00
+# @Last modified time: 2018-08-25T19:36:30-03:00
 # -*- coding: utf-8 -*-
 import maya.cmds as cmds
 import maya.mel as mel
@@ -65,14 +65,13 @@ def loadJSONFile(filePath):
     inputFile.close()
     return JSONData
 
-
+'''
 pathFile = 'N:/CLOUDNAS/EMPRESAS/HookUpAnimation/GILG/02_ANIMATION/ESC01/PL001/MOCAP/'
 filename = 'gilgameshTest'
-ext = '.mocapFace'
+file=pathFile+filename
 nameSpace= 'C01_GilgameshViaje_rig_v025'
-
-def createDataLinkMocap():
-
+'''
+def createDataLinkMocap(filePath=''):
     sel=[]
     sel=cmds.ls(sl=True,type=['joint','transform'])
     facePoints={}
@@ -97,13 +96,12 @@ def createDataLinkMocap():
         print (k,'>>>',v)
 
     #Grabo en archivo
-    #utl.saveJSONFile(facePoints,pathFile+filename+ext)
+    utl.saveJSONFile(facePoints,filePath+'.mocapFace')
 
+
+def doLinkMocap(filePath='',nameSpace=''):
     #cargo los datos del archivos
-    datos = loadJSONFile(pathFile+filename+ext)
-    return datos
-
-def doLinkMocap(datos={}):
+    datos = loadJSONFile(filePath+'.mocapFace')
     #Crear links Constraint
     for j,p in datos.items():
 
