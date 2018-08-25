@@ -1,5 +1,5 @@
 # @Date:   2018-04-16T21:50:11-03:00
-# @Last modified time: 2018-08-25T01:56:21-03:00
+# @Last modified time: 2018-08-25T19:09:46-03:00
 # -*- coding: utf-8 -*-
 import maya.cmds as cmds
 import maya.mel as mel
@@ -70,52 +70,61 @@ pathFile = 'N:/CLOUDNAS/EMPRESAS/HookUpAnimation/GILG/02_ANIMATION/ESC01/PL001/M
 filename = 'gilgameshTest'
 ext = '.mocapFace'
 nameSpace= 'C01_GilgameshViaje_rig_v025'
-sel=[]
-sel=cmds.ls(sl=True,type=['joint','transform'])
-facePoints={}
-#Orden de seleccion primero el joint luego el punto y guardo en listas.
-jnt=[]
-lct=[]
-for j in range(len(sel)):
-    if j%2 == 0:
-        jnt.append(sel[j])
-    if j%2 == 1:
-        lct.append(sel[j])
 
-#Grabo todo en un diccionario
-for j in jnt:
-    if ':' in j: j=j.split(':')[-1]
-    for l in lct:
-        if ':' in l: l=l.split(':')[-1]
-        facePoints[j]=l
+def createDataLinkMocap():
 
-#Leo el diccionario
-for k,v in facePoints.items():
-    print (k,'>>>',v)
+    sel=[]
+    sel=cmds.ls(sl=True,type=['joint','transform'])
+    facePoints={}
+    #Orden de seleccion primero el joint luego el punto y guardo en listas.
+    jnt=[]
+    lct=[]
+    for j in range(len(sel)):
+        if j%2 == 0:
+            jnt.append(sel[j])
+        if j%2 == 1:
+            lct.append(sel[j])
 
-#Grabo en archivo
-#utl.saveJSONFile(facePoints,pathFile+filename+ext)
+    #Grabo todo en un diccionario
+    for j in jnt:
+        if ':' in j: j=j.split(':')[-1]
+        for l in lct:
+            if ':' in l: l=l.split(':')[-1]
+            facePoints[j]=l
 
-#cargo los datos del archivos
-datos = loadJSONFile(pathFile+filename+ext)
-print (datos)
-#Crear links Constraint
-for j,p in datos.items():
+    #Leo el diccionario
+    for k,v in facePoints.items():
+        print (k,'>>>',v)
 
-    if nameSpace:
-        jointName=nameSpace+':'+j
-    #si es un joint sigo
-    if cmds.objExists(j) and cmds.nodeType(j)=='joint':
-        attrs=cmds.listAttr (j, keyable=1)
-        for attr in attrs:
-            cmds.setAttr (j+"."+attr, lock=0)
-        #si no estaba emparentado sigo
-        try:
+    #Grabo en archivo
+    #utl.saveJSONFile(facePoints,pathFile+filename+ext)
+
+    #cargo los datos del archivos
+    datos = loadJSONFile(pathFile+filename+ext)
+    return datos
+
+def doLinkMocap(datos={}):
+    #Crear links Constraint
+    for j,p in datos.items():
+
+        if nameSpace:
+            j=nameSpace+':'+j
+        #si es un joint sigo
+        if cmds.objExists(j) and cmds.nodeType(j)=='joint':
+            attrs=cmds.listAttr (j, keyable=1)
+            for attr in attrs:
+                try:
+                    cmds.setAttr (j+"."+attr, lock=0)
+                except:
+                    pass
+            #si no estaba emparentado sigo
             if not cmds.objExists(str(j)+'_PCNS'):
-                cmds.parentConstraint(p,j,name=str(j)+'_PCNS',maintainOffset=True)
+                cmds.parentConstraint(p,j,name=str(j)+'_TLINK_PCNS',maintainOffset=True)
             if not cmds.objExists(str(j)+'_SCNS'):
-                cmds.scaleConstraint(p,j,name=str(j)+'_SCNS',maintainOffset=True)
-        except:
-            print ('No se pudo conectar el '+ datos[j])
+                cmds.scaleConstraint(p,j,name=str(j)+'_TLINK_SCNS',maintainOffset=True)
 
-    print (datos[j])
+def deleteConstraints():
+    cnts=cmds.ls('*_TLINK_*',type='constraint',r=1)
+    for cnt in cnts:
+        if cmds.nodeType(cnt)=='parentConstraints'or'pointConstraints'or'orientConstraints'or'scaleConstraint':
+            cmds.delete(cnt)
