@@ -1,5 +1,5 @@
 # @Date:   2018-04-16T21:50:11-03:00
-# @Last modified time: 2018-06-26T02:28:57-03:00
+# @Last modified time: 2018-08-25T01:56:21-03:00
 # -*- coding: utf-8 -*-
 import maya.cmds as cmds
 import maya.mel as mel
@@ -8,9 +8,10 @@ import sys , os
 from PySide2 import QtCore, QtGui, QtUiTools
 from math import sqrt
 import maya.OpenMaya as OpenMaya
+import maya.OpenMayaUI as mui
 import weakref
 import json
-
+import shiboken2
 class puntaApunta():
 
     def __init__(self):
@@ -23,8 +24,12 @@ class puntaApunta():
 
     #Borro lo que esta en memoria
     def __del__(self):
-        print 'salio y borro todo'
+        print ('salio y borro todo')
         cmds.delete(cmds.select(self.listaLocators))
+
+    def getMayaWindow():
+        pointer = mui.MQtUtil.mainWindow()
+        return shiboken2.wrapInstance(long(pointer), QtWidgets.QWidget)
 
     def win(self):
         #UI START
@@ -64,7 +69,7 @@ def loadJSONFile(filePath):
 pathFile = 'N:/CLOUDNAS/EMPRESAS/HookUpAnimation/GILG/02_ANIMATION/ESC01/PL001/MOCAP/'
 filename = 'gilgameshTest'
 ext = '.mocapFace'
-
+nameSpace= 'C01_GilgameshViaje_rig_v025'
 sel=[]
 sel=cmds.ls(sl=True,type=['joint','transform'])
 facePoints={}
@@ -79,34 +84,38 @@ for j in range(len(sel)):
 
 #Grabo todo en un diccionario
 for j in jnt:
+    if ':' in j: j=j.split(':')[-1]
     for l in lct:
+        if ':' in l: l=l.split(':')[-1]
         facePoints[j]=l
 
 #Leo el diccionario
 for k,v in facePoints.items():
-    print k,'>>>',v
+    print (k,'>>>',v)
 
 #Grabo en archivo
 #utl.saveJSONFile(facePoints,pathFile+filename+ext)
 
 #cargo los datos del archivos
 datos = loadJSONFile(pathFile+filename+ext)
-
+print (datos)
 #Crear links Constraint
 for j,p in datos.items():
-    jointName=j
+
+    if nameSpace:
+        jointName=nameSpace+':'+j
     #si es un joint sigo
-    if cmds.objExists(jointName) and cmds.nodeType(jointName)=='joint':
+    if cmds.objExists(j) and cmds.nodeType(j)=='joint':
         attrs=cmds.listAttr (j, keyable=1)
         for attr in attrs:
             cmds.setAttr (j+"."+attr, lock=0)
         #si no estaba emparentado sigo
         try:
-            if not cmds.objExists(str(jointName)+'_PCNS'):
-                cmds.parentConstraint(datos[j],j,name=str(datos[j])+'_PCNS',maintainOffset=True)
-            if not cmds.objExists(str(datos[j])+'_SCNS'):
-                cmds.scaleConstraint(datos[j],j,name=str(datos[j])+'_SCNS',maintainOffset=True)
+            if not cmds.objExists(str(j)+'_PCNS'):
+                cmds.parentConstraint(p,j,name=str(j)+'_PCNS',maintainOffset=True)
+            if not cmds.objExists(str(j)+'_SCNS'):
+                cmds.scaleConstraint(p,j,name=str(j)+'_SCNS',maintainOffset=True)
         except:
-            print 'No se pudo conectar el '+ datos[j]
+            print ('No se pudo conectar el '+ datos[j])
 
-    print str(datos[j])
+    print (datos[j])
